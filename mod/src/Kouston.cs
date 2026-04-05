@@ -1,4 +1,5 @@
 using KSP.UI.Screens;
+using Kouston.Network;
 using Kouston.UI;
 using UnityEngine;
 
@@ -7,14 +8,24 @@ namespace Kouston
     [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
     public class Kouston : MonoBehaviour
     {
+        public static Client Client { get; private set; }
+
         private ConnectWindow connectWindow;
         private ApplicationLauncherButton toolbarButton;
         private Texture2D buttonTexture;
+        private float telemetryInterval = 0.5f;
+        private float lastTelemetryTime;
 
         public void Start()
         {
             Debug.Log("[Kouston] Mod loaded successfully!");
-            connectWindow = new ConnectWindow();
+
+            if (Client == null)
+            {
+                Client = new Client();
+            }
+
+            connectWindow = new ConnectWindow(Client);
 
             buttonTexture = CreateButtonTexture();
             GameEvents.onGUIApplicationLauncherReady.Add(OnGUIAppLauncherReady);
@@ -23,6 +34,26 @@ namespace Kouston
             if (ApplicationLauncher.Ready)
             {
                 OnGUIAppLauncherReady();
+            }
+        }
+
+        public void Update()
+        {
+            if (!Client.IsConnected)
+                return;
+
+            if (Time.time - lastTelemetryTime < telemetryInterval)
+                return;
+
+            lastTelemetryTime = Time.time;
+
+            if (FlightGlobals.ActiveVessel != null)
+            {
+                var telemetry = Telemetry.FromVessel(FlightGlobals.ActiveVessel);
+                if (telemetry != null)
+                {
+                    Client.SendTelemetry(telemetry);
+                }
             }
         }
 

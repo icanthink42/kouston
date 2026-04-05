@@ -1,0 +1,113 @@
+<div class="main-display">
+  <header>
+    <h1>Kouston Mission Control</h1>
+    <div class="connection-controls">
+      @if (!connected) {
+        <input type="text" [(ngModel)]="serverIP" placeholder="Server IP" class="input-field" />
+        <input type="text" [(ngModel)]="serverPort" placeholder="Port" class="input-field port" />
+        <button (click)="connect()" class="btn connect">Connect</button>
+      } @else {
+        <span class="server-info">{{ serverIP }}:{{ serverPort }}</span>
+        <button (click)="disconnect()" class="btn disconnect">Disconnect</button>
+      }
+      <div class="connection-status" [class.connected]="connected">
+        {{ connected ? 'CONNECTED' : 'DISCONNECTED' }}
+      </div>
+    </div>
+  </header>
+
+  <main>
+    @if (!connected) {
+      <div class="no-vessels">
+        <p>Not connected</p>
+        <p class="hint">Enter server IP and click Connect</p>
+      </div>
+    } @else if (vesselIds.length === 0) {
+      <div class="no-vessels">
+        <p>No active vessels</p>
+        <p class="hint">Connect from KSP to see telemetry</p>
+      </div>
+    } @else {
+      <div class="mission-view">
+        <div class="map-section">
+          <app-orbital-map [vessel]="selectedVessel"></app-orbital-map>
+        </div>
+
+        <aside class="telemetry-sidebar">
+          <div class="vessel-selector">
+            <h3>Vessels</h3>
+            @for (id of vesselIds; track id) {
+              <button
+                class="vessel-tab"
+                [class.active]="selectedVesselId === id"
+                (click)="selectVessel(id)">
+                {{ getVessel(id).name }}
+              </button>
+            }
+          </div>
+
+          @if (selectedVessel) {
+            <div class="telemetry-panel">
+              <h3>Telemetry</h3>
+
+              <div class="telemetry-group">
+                <div class="telemetry-item">
+                  <span class="label">Altitude</span>
+                  <span class="value">{{ formatAltitude(selectedVessel.altitude) }}</span>
+                </div>
+
+                <div class="telemetry-item">
+                  <span class="label">Velocity</span>
+                  <span class="value">{{ formatVelocity(selectedVessel.velocity) }}</span>
+                </div>
+              </div>
+
+              <div class="telemetry-group">
+                <div class="telemetry-item">
+                  <span class="label">Apoapsis</span>
+                  <span class="value">{{ formatAltitude(selectedVessel.apoapsis) }}</span>
+                </div>
+
+                <div class="telemetry-item">
+                  <span class="label">Periapsis</span>
+                  <span class="value">{{ formatAltitude(selectedVessel.periapsis) }}</span>
+                </div>
+              </div>
+
+              <div class="telemetry-group">
+                <div class="telemetry-item">
+                  <span class="label">Latitude</span>
+                  <span class="value">{{ selectedVessel.latitude.toFixed(4) }}°</span>
+                </div>
+
+                <div class="telemetry-item">
+                  <span class="label">Longitude</span>
+                  <span class="value">{{ selectedVessel.longitude.toFixed(4) }}°</span>
+                </div>
+              </div>
+
+              <div class="telemetry-group">
+                <div class="telemetry-item">
+                  <span class="label">Inclination</span>
+                  <span class="value">{{ selectedVessel.inclination.toFixed(2) }}°</span>
+                </div>
+
+                <div class="telemetry-item">
+                  <span class="label">Period</span>
+                  <span class="value">{{ (selectedVessel.period / 60).toFixed(1) }} min</span>
+                </div>
+              </div>
+
+              <div class="telemetry-group">
+                <div class="telemetry-item full-width">
+                  <span class="label">Fuel</span>
+                  <span class="value">{{ formatNumber(selectedVessel.fuel, 1) }} units</span>
+                </div>
+              </div>
+            </div>
+          }
+        </aside>
+      </div>
+    }
+  </main>
+</div>

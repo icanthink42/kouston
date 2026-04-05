@@ -18,6 +18,14 @@ obj/
 # Built DLLs (keep source, not binaries)
 mod/GameData/Kouston/Plugins/*.dll
 
+# Go binary
+server/kouston-server
+
+# Node
+node_modules/
+.angular/
+dist/
+
 # OS
 .DS_Store
 Thumbs.db

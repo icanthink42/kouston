@@ -6,15 +6,15 @@ namespace Kouston.UI
     public class ConnectWindow
     {
         private bool showWindow = false;
-        private Rect windowRect = new Rect(100, 100, 300, 150);
+        private Rect windowRect = new Rect(100, 100, 300, 180);
         private string serverIP = "127.0.0.1";
         private string serverPort = "7777";
 
         private Client client;
 
-        public ConnectWindow()
+        public ConnectWindow(Client client)
         {
-            client = new Client();
+            this.client = client;
         }
 
         public void Show()
@@ -39,6 +39,11 @@ namespace Kouston.UI
         {
             GUILayout.BeginVertical();
 
+            string status = client.IsConnected ? "<color=green>Connected</color>" : "<color=red>Disconnected</color>";
+            GUILayout.Label($"Status: {status}");
+
+            GUILayout.Space(5);
+
             GUILayout.Label("Server IP:");
             serverIP = GUILayout.TextField(serverIP);
 
@@ -47,15 +52,25 @@ namespace Kouston.UI
 
             GUILayout.Space(10);
 
-            if (GUILayout.Button("Connect"))
+            if (client.IsConnected)
             {
-                if (int.TryParse(serverPort, out int port))
+                if (GUILayout.Button("Disconnect"))
                 {
-                    client.Connect(serverIP, port);
+                    client.Disconnect();
                 }
-                else
+            }
+            else
+            {
+                if (GUILayout.Button("Connect"))
                 {
-                    Debug.LogError("[Kouston] Invalid port number");
+                    if (int.TryParse(serverPort, out int port))
+                    {
+                        client.Connect(serverIP, port);
+                    }
+                    else
+                    {
+                        Debug.LogError("[Kouston] Invalid port number");
+                    }
                 }
             }
 
