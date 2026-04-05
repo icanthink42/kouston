@@ -1,0 +1,23 @@
+# Build outputs
+bin/
+obj/
+
+# IDE
+.vs/
+.idea/
+*.user
+*.suo
+
+# Unity
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+
+# Built DLLs (keep source, not binaries)
+mod/GameData/Kouston/Plugins/*.dll
+
+# OS
+.DS_Store
+Thumbs.db
