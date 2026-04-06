@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Kouston.Network
 {
@@ -32,6 +33,15 @@ namespace Kouston.Network
         public double horizontalSpeed; // Horizontal velocity (m/s)
         public double radarAltitude;   // Height above terrain (m)
         public double throttle;        // Current throttle (0-1)
+
+        // System bodies (flattened arrays for Unity JsonUtility compatibility)
+        public string[] bodyNames = new string[0];
+        public double[] bodyTrueAnomalies = new double[0];
+        public double[] bodyArgsOfPeriapsis = new double[0];
+        public double[] bodyLANs = new double[0];
+        public double[] bodyInclinations = new double[0];
+        public double[] bodySemiMajorAxes = new double[0];
+        public double[] bodyRadii = new double[0];
 
         public static Telemetry FromVessel(Vessel vessel)
         {
@@ -69,8 +79,98 @@ namespace Kouston.Network
                 verticalSpeed = Sanitize(vessel.verticalSpeed),
                 horizontalSpeed = Sanitize(vessel.horizontalSrfSpeed),
                 radarAltitude = Sanitize(vessel.radarAltitude),
-                throttle = Sanitize(vessel.ctrlState?.mainThrottle ?? 0)
+                throttle = Sanitize(vessel.ctrlState?.mainThrottle ?? 0),
+
+                // System bodies
+                bodyNames = GetBodyNames(vessel.mainBody),
+                bodyTrueAnomalies = GetBodyTrueAnomalies(vessel.mainBody),
+                bodyArgsOfPeriapsis = GetBodyArgsOfPeriapsis(vessel.mainBody),
+                bodyLANs = GetBodyLANs(vessel.mainBody),
+                bodyInclinations = GetBodyInclinations(vessel.mainBody),
+                bodySemiMajorAxes = GetBodySemiMajorAxes(vessel.mainBody),
+                bodyRadii = GetBodyRadii(vessel.mainBody)
             };
+        }
+
+        private static List<CelestialBody> GetOrbitingBodies(CelestialBody mainBody)
+        {
+            var result = new List<CelestialBody>();
+            try
+            {
+                if (mainBody?.orbitingBodies != null)
+                {
+                    foreach (var body in mainBody.orbitingBodies)
+                    {
+                        if (body != null)
+                            result.Add(body);
+                    }
+                }
+            }
+            catch { }
+            return result;
+        }
+
+        private static string[] GetBodyNames(CelestialBody mainBody)
+        {
+            var bodies = GetOrbitingBodies(mainBody);
+            var names = new string[bodies.Count];
+            for (int i = 0; i < bodies.Count; i++)
+                names[i] = bodies[i].bodyName ?? "Unknown";
+            return names;
+        }
+
+        private static double[] GetBodyTrueAnomalies(CelestialBody mainBody)
+        {
+            var bodies = GetOrbitingBodies(mainBody);
+            var values = new double[bodies.Count];
+            for (int i = 0; i < bodies.Count; i++)
+                values[i] = Sanitize(bodies[i].orbit?.trueAnomaly ?? 0);
+            return values;
+        }
+
+        private static double[] GetBodyArgsOfPeriapsis(CelestialBody mainBody)
+        {
+            var bodies = GetOrbitingBodies(mainBody);
+            var values = new double[bodies.Count];
+            for (int i = 0; i < bodies.Count; i++)
+                values[i] = Sanitize(bodies[i].orbit?.argumentOfPeriapsis ?? 0);
+            return values;
+        }
+
+        private static double[] GetBodyLANs(CelestialBody mainBody)
+        {
+            var bodies = GetOrbitingBodies(mainBody);
+            var values = new double[bodies.Count];
+            for (int i = 0; i < bodies.Count; i++)
+                values[i] = Sanitize(bodies[i].orbit?.LAN ?? 0);
+            return values;
+        }
+
+        private static double[] GetBodyInclinations(CelestialBody mainBody)
+        {
+            var bodies = GetOrbitingBodies(mainBody);
+            var values = new double[bodies.Count];
+            for (int i = 0; i < bodies.Count; i++)
+                values[i] = Sanitize(bodies[i].orbit?.inclination ?? 0);
+            return values;
+        }
+
+        private static double[] GetBodySemiMajorAxes(CelestialBody mainBody)
+        {
+            var bodies = GetOrbitingBodies(mainBody);
+            var values = new double[bodies.Count];
+            for (int i = 0; i < bodies.Count; i++)
+                values[i] = Sanitize(bodies[i].orbit?.semiMajorAxis ?? 0);
+            return values;
+        }
+
+        private static double[] GetBodyRadii(CelestialBody mainBody)
+        {
+            var bodies = GetOrbitingBodies(mainBody);
+            var values = new double[bodies.Count];
+            for (int i = 0; i < bodies.Count; i++)
+                values[i] = Sanitize(bodies[i].Radius);
+            return values;
         }
 
         private static double GetTotalFuel(Vessel vessel)

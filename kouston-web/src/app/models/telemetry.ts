@@ -26,6 +26,15 @@ export interface Vessel {
   horizontalSpeed: number; // Horizontal velocity (m/s)
   radarAltitude: number;   // Height above terrain (m)
   throttle: number;        // Current throttle (0-1)
+
+  // System bodies (flattened arrays)
+  bodyNames: string[];
+  bodyTrueAnomalies: number[];
+  bodyArgsOfPeriapsis: number[];
+  bodyLANs: number[];
+  bodyInclinations: number[];
+  bodySemiMajorAxes: number[];
+  bodyRadii: number[];
 }
 
 export interface TelemetryState {
