@@ -4,17 +4,17 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TelemetryService } from '../../services/telemetry.service';
 import { TelemetryState, Vessel } from '../../models/telemetry';
-import { OrbitalMapComponent } from '../orbital-map/orbital-map.component';
+import { OrbitalViewComponent } from '../../components/orbital-view/orbital-view.component';
 import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-main-display',
+  selector: 'app-orbital-display',
   standalone: true,
-  imports: [CommonModule, FormsModule, OrbitalMapComponent],
-  templateUrl: './main-display.component.html',
-  styleUrl: './main-display.component.scss'
+  imports: [CommonModule, FormsModule, OrbitalViewComponent],
+  templateUrl: './orbital-display.component.html',
+  styleUrl: './orbital-display.component.scss'
 })
-export class MainDisplayComponent implements OnInit, OnDestroy {
+export class OrbitalDisplayComponent implements OnInit, OnDestroy {
   telemetry: TelemetryState = {};
   connected = false;
   vesselIds: string[] = [];
@@ -43,16 +43,19 @@ export class MainDisplayComponent implements OnInit, OnDestroy {
         this.telemetry = telemetry;
         this.vesselIds = Object.keys(telemetry);
 
-        // Auto-select first vessel if none selected
         if (!this.selectedVesselId && this.vesselIds.length > 0) {
           this.selectedVesselId = this.vesselIds[0];
         }
-        // Clear selection if vessel no longer exists
         if (this.selectedVesselId && !telemetry[this.selectedVesselId]) {
           this.selectedVesselId = this.vesselIds.length > 0 ? this.vesselIds[0] : null;
         }
       }
     );
+  }
+
+  ngOnDestroy(): void {
+    this.telemetrySub?.unsubscribe();
+    this.connectedSub?.unsubscribe();
   }
 
   get selectedVessel(): Vessel | null {
@@ -74,21 +77,8 @@ export class MainDisplayComponent implements OnInit, OnDestroy {
     this.telemetryService.disconnect();
   }
 
-  ngOnDestroy(): void {
-    this.telemetrySub?.unsubscribe();
-    this.connectedSub?.unsubscribe();
-    this.telemetryService.disconnect();
-  }
-
   getVessel(id: string): Vessel {
     return this.telemetry[id];
-  }
-
-  formatNumber(value: number, decimals: number = 0): string {
-    return value.toLocaleString(undefined, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    });
   }
 
   formatAltitude(meters: number): string {

@@ -22,6 +22,14 @@ type Vessel struct {
 	TrueAnomaly        float64 `json:"trueAnomaly"`
 	Period             float64 `json:"period"`
 	BodyRadius         float64 `json:"bodyRadius"`
+	BodyName           string  `json:"bodyName"`
+
+	// EDL data
+	Pitch           float64 `json:"pitch"`
+	VerticalSpeed   float64 `json:"verticalSpeed"`
+	HorizontalSpeed float64 `json:"horizontalSpeed"`
+	RadarAltitude   float64 `json:"radarAltitude"`
+	Throttle        float64 `json:"throttle"`
 }
 
 type State struct {

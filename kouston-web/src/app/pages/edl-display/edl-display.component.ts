@@ -4,17 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TelemetryService } from '../../services/telemetry.service';
 import { TelemetryState, Vessel } from '../../models/telemetry';
-import { OrbitalMapComponent } from '../orbital-map/orbital-map.component';
 import { Subscription } from 'rxjs';
 
 @Component({
-  selector: 'app-main-display',
+  selector: 'app-edl-display',
   standalone: true,
-  imports: [CommonModule, FormsModule, OrbitalMapComponent],
-  templateUrl: './main-display.component.html',
-  styleUrl: './main-display.component.scss'
+  imports: [CommonModule, FormsModule],
+  templateUrl: './edl-display.component.html',
+  styleUrl: './edl-display.component.scss'
 })
-export class MainDisplayComponent implements OnInit, OnDestroy {
+export class EdlDisplayComponent implements OnInit, OnDestroy {
   telemetry: TelemetryState = {};
   connected = false;
   vesselIds: string[] = [];
@@ -43,16 +42,19 @@ export class MainDisplayComponent implements OnInit, OnDestroy {
         this.telemetry = telemetry;
         this.vesselIds = Object.keys(telemetry);
 
-        // Auto-select first vessel if none selected
         if (!this.selectedVesselId && this.vesselIds.length > 0) {
           this.selectedVesselId = this.vesselIds[0];
         }
-        // Clear selection if vessel no longer exists
         if (this.selectedVesselId && !telemetry[this.selectedVesselId]) {
           this.selectedVesselId = this.vesselIds.length > 0 ? this.vesselIds[0] : null;
         }
       }
     );
+  }
+
+  ngOnDestroy(): void {
+    this.telemetrySub?.unsubscribe();
+    this.connectedSub?.unsubscribe();
   }
 
   get selectedVessel(): Vessel | null {
@@ -74,21 +76,8 @@ export class MainDisplayComponent implements OnInit, OnDestroy {
     this.telemetryService.disconnect();
   }
 
-  ngOnDestroy(): void {
-    this.telemetrySub?.unsubscribe();
-    this.connectedSub?.unsubscribe();
-    this.telemetryService.disconnect();
-  }
-
   getVessel(id: string): Vessel {
     return this.telemetry[id];
-  }
-
-  formatNumber(value: number, decimals: number = 0): string {
-    return value.toLocaleString(undefined, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    });
   }
 
   formatAltitude(meters: number): string {
@@ -101,9 +90,16 @@ export class MainDisplayComponent implements OnInit, OnDestroy {
   }
 
   formatVelocity(ms: number): string {
-    if (ms >= 1000) {
+    if (Math.abs(ms) >= 1000) {
       return `${(ms / 1000).toFixed(2)} km/s`;
     }
     return `${ms.toFixed(1)} m/s`;
+  }
+
+  getLanderRotation(): number {
+    if (!this.selectedVessel) return 0;
+    // Pitch is relative to horizon: 90 = pointing up, 0 = horizontal, -90 = pointing down
+    // CSS rotation: 0 = pointing up, so at pitch=90 we want rotation=0
+    return 90 - this.selectedVessel.pitch;
   }
 }

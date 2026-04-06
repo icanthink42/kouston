@@ -18,6 +18,14 @@ export interface Vessel {
   trueAnomaly: number;
   period: number;
   bodyRadius: number;
+  bodyName: string;
+
+  // EDL data
+  pitch: number;           // Pitch angle relative to horizon (degrees)
+  verticalSpeed: number;   // Vertical velocity (m/s, negative = descending)
+  horizontalSpeed: number; // Horizontal velocity (m/s)
+  radarAltitude: number;   // Height above terrain (m)
+  throttle: number;        // Current throttle (0-1)
 }
 
 export interface TelemetryState {

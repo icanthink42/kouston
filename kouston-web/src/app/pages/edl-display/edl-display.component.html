@@ -1,11 +1,11 @@
-<div class="main-display">
+<div class="edl-display">
   <header>
     <select class="page-dropdown" (change)="navigateTo($event)">
-      <option value="/" selected>Ground Track</option>
+      <option value="/">Ground Track</option>
       <option value="/orbital">Orbital View</option>
-      <option value="/edl">EDL</option>
+      <option value="/edl" selected>EDL</option>
     </select>
-    <h1>Ground Track</h1>
+    <h1>Entry, Descent & Landing</h1>
     <div class="connection-controls">
       @if (!connected) {
         <input type="text" [(ngModel)]="serverIP" placeholder="Server IP" class="input-field" />
@@ -33,9 +33,39 @@
         <p class="hint">Connect from KSP to see telemetry</p>
       </div>
     } @else {
-      <div class="mission-view">
-        <div class="map-section">
-          <app-orbital-map [vessel]="selectedVessel"></app-orbital-map>
+      <div class="edl-view">
+        <div class="lander-section">
+          <div class="lander-container">
+            <div class="vertical-speed">
+              <span class="label">V/S</span>
+              <span class="value" [class.negative]="selectedVessel && selectedVessel.verticalSpeed < 0">
+                {{ selectedVessel ? formatVelocity(selectedVessel.verticalSpeed) : '--' }}
+              </span>
+            </div>
+
+            <div class="lander-wrapper">
+              <img
+                [src]="selectedVessel && selectedVessel.throttle > 0 ? 'lander_fire.png' : 'lander.png'"
+                alt="Lander"
+                class="lander-image"
+                [style.transform]="'rotate(' + getLanderRotation() + 'deg)'"
+              />
+            </div>
+
+            <div class="horizontal-speed">
+              <span class="label">H/S</span>
+              <span class="value">
+                {{ selectedVessel ? formatVelocity(selectedVessel.horizontalSpeed) : '--' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="radar-altitude">
+            <span class="label">Radar Altitude</span>
+            <span class="value">
+              {{ selectedVessel ? formatAltitude(selectedVessel.radarAltitude) : '--' }}
+            </span>
+          </div>
         </div>
 
         <aside class="telemetry-sidebar">
@@ -53,60 +83,43 @@
 
           @if (selectedVessel) {
             <div class="telemetry-panel">
-              <h3>Telemetry</h3>
+              <h3>EDL Data</h3>
 
               <div class="telemetry-group">
+                <div class="telemetry-item">
+                  <span class="label">Pitch</span>
+                  <span class="value">{{ selectedVessel.pitch.toFixed(1) }}°</span>
+                </div>
+
                 <div class="telemetry-item">
                   <span class="label">Altitude</span>
                   <span class="value">{{ formatAltitude(selectedVessel.altitude) }}</span>
                 </div>
-
-                <div class="telemetry-item">
-                  <span class="label">Velocity</span>
-                  <span class="value">{{ formatVelocity(selectedVessel.velocity) }}</span>
-                </div>
               </div>
 
               <div class="telemetry-group">
                 <div class="telemetry-item">
-                  <span class="label">Apoapsis</span>
-                  <span class="value">{{ formatAltitude(selectedVessel.apoapsis) }}</span>
+                  <span class="label">Vertical Speed</span>
+                  <span class="value">{{ formatVelocity(selectedVessel.verticalSpeed) }}</span>
                 </div>
 
                 <div class="telemetry-item">
-                  <span class="label">Periapsis</span>
-                  <span class="value">{{ formatAltitude(selectedVessel.periapsis) }}</span>
-                </div>
-              </div>
-
-              <div class="telemetry-group">
-                <div class="telemetry-item">
-                  <span class="label">Latitude</span>
-                  <span class="value">{{ selectedVessel.latitude.toFixed(4) }}°</span>
-                </div>
-
-                <div class="telemetry-item">
-                  <span class="label">Longitude</span>
-                  <span class="value">{{ selectedVessel.longitude.toFixed(4) }}°</span>
+                  <span class="label">Horizontal Speed</span>
+                  <span class="value">{{ formatVelocity(selectedVessel.horizontalSpeed) }}</span>
                 </div>
               </div>
 
               <div class="telemetry-group">
-                <div class="telemetry-item">
-                  <span class="label">Inclination</span>
-                  <span class="value">{{ selectedVessel.inclination.toFixed(2) }}°</span>
-                </div>
-
-                <div class="telemetry-item">
-                  <span class="label">Period</span>
-                  <span class="value">{{ (selectedVessel.period / 60).toFixed(1) }} min</span>
+                <div class="telemetry-item full-width">
+                  <span class="label">Radar Altitude</span>
+                  <span class="value">{{ formatAltitude(selectedVessel.radarAltitude) }}</span>
                 </div>
               </div>
 
               <div class="telemetry-group">
                 <div class="telemetry-item full-width">
                   <span class="label">Fuel</span>
-                  <span class="value">{{ formatNumber(selectedVessel.fuel, 1) }} units</span>
+                  <span class="value">{{ selectedVessel.fuel.toFixed(1) }} units</span>
                 </div>
               </div>
             </div>

@@ -1,11 +1,11 @@
-<div class="main-display">
+<div class="orbital-display">
   <header>
     <select class="page-dropdown" (change)="navigateTo($event)">
-      <option value="/" selected>Ground Track</option>
-      <option value="/orbital">Orbital View</option>
+      <option value="/">Ground Track</option>
+      <option value="/orbital" selected>Orbital View</option>
       <option value="/edl">EDL</option>
     </select>
-    <h1>Ground Track</h1>
+    <h1>Orbital View</h1>
     <div class="connection-controls">
       @if (!connected) {
         <input type="text" [(ngModel)]="serverIP" placeholder="Server IP" class="input-field" />
@@ -34,8 +34,8 @@
       </div>
     } @else {
       <div class="mission-view">
-        <div class="map-section">
-          <app-orbital-map [vessel]="selectedVessel"></app-orbital-map>
+        <div class="orbit-section">
+          <app-orbital-view [vessel]="selectedVessel"></app-orbital-view>
         </div>
 
         <aside class="telemetry-sidebar">
@@ -53,17 +53,17 @@
 
           @if (selectedVessel) {
             <div class="telemetry-panel">
-              <h3>Telemetry</h3>
+              <h3>Orbital Data</h3>
 
               <div class="telemetry-group">
                 <div class="telemetry-item">
-                  <span class="label">Altitude</span>
-                  <span class="value">{{ formatAltitude(selectedVessel.altitude) }}</span>
+                  <span class="label">Body</span>
+                  <span class="value">{{ selectedVessel.bodyName }}</span>
                 </div>
 
                 <div class="telemetry-item">
-                  <span class="label">Velocity</span>
-                  <span class="value">{{ formatVelocity(selectedVessel.velocity) }}</span>
+                  <span class="label">Altitude</span>
+                  <span class="value">{{ formatAltitude(selectedVessel.altitude) }}</span>
                 </div>
               </div>
 
@@ -81,32 +81,37 @@
 
               <div class="telemetry-group">
                 <div class="telemetry-item">
-                  <span class="label">Latitude</span>
-                  <span class="value">{{ selectedVessel.latitude.toFixed(4) }}°</span>
+                  <span class="label">Eccentricity</span>
+                  <span class="value">{{ selectedVessel.eccentricity.toFixed(4) }}</span>
                 </div>
 
-                <div class="telemetry-item">
-                  <span class="label">Longitude</span>
-                  <span class="value">{{ selectedVessel.longitude.toFixed(4) }}°</span>
-                </div>
-              </div>
-
-              <div class="telemetry-group">
                 <div class="telemetry-item">
                   <span class="label">Inclination</span>
                   <span class="value">{{ selectedVessel.inclination.toFixed(2) }}°</span>
                 </div>
+              </div>
 
+              <div class="telemetry-group">
                 <div class="telemetry-item">
                   <span class="label">Period</span>
                   <span class="value">{{ (selectedVessel.period / 60).toFixed(1) }} min</span>
                 </div>
+
+                <div class="telemetry-item">
+                  <span class="label">True Anomaly</span>
+                  <span class="value">{{ (selectedVessel.trueAnomaly * 180 / 3.14159).toFixed(1) }}°</span>
+                </div>
               </div>
 
               <div class="telemetry-group">
-                <div class="telemetry-item full-width">
-                  <span class="label">Fuel</span>
-                  <span class="value">{{ formatNumber(selectedVessel.fuel, 1) }} units</span>
+                <div class="telemetry-item">
+                  <span class="label">Semi-Major Axis</span>
+                  <span class="value">{{ formatAltitude(selectedVessel.semiMajorAxis) }}</span>
+                </div>
+
+                <div class="telemetry-item">
+                  <span class="label">Velocity</span>
+                  <span class="value">{{ formatVelocity(selectedVessel.velocity) }}</span>
                 </div>
               </div>
             </div>
