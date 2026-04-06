@@ -39,6 +39,12 @@ type Vessel struct {
 	BodyInclinations    []float64 `json:"bodyInclinations"`
 	BodySemiMajorAxes   []float64 `json:"bodySemiMajorAxes"`
 	BodyRadii           []float64 `json:"bodyRadii"`
+
+	// Resource breakdown
+	ResourcePartNames  []string  `json:"resourcePartNames"`
+	ResourceTypes      []string  `json:"resourceTypes"`
+	ResourceAmounts    []float64 `json:"resourceAmounts"`
+	ResourceMaxAmounts []float64 `json:"resourceMaxAmounts"`
 }
 
 type State struct {

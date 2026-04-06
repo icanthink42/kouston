@@ -35,6 +35,12 @@ export interface Vessel {
   bodyInclinations: number[];
   bodySemiMajorAxes: number[];
   bodyRadii: number[];
+
+  // Resource breakdown
+  resourcePartNames: string[];
+  resourceTypes: string[];
+  resourceAmounts: number[];
+  resourceMaxAmounts: number[];
 }
 
 export interface TelemetryState {

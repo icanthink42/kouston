@@ -43,6 +43,12 @@ namespace Kouston.Network
         public double[] bodySemiMajorAxes = new double[0];
         public double[] bodyRadii = new double[0];
 
+        // Resource breakdown (flattened arrays)
+        public string[] resourcePartNames = new string[0];
+        public string[] resourceTypes = new string[0];
+        public double[] resourceAmounts = new double[0];
+        public double[] resourceMaxAmounts = new double[0];
+
         public static Telemetry FromVessel(Vessel vessel)
         {
             if (vessel == null)
@@ -88,8 +94,70 @@ namespace Kouston.Network
                 bodyLANs = GetBodyLANs(vessel.mainBody),
                 bodyInclinations = GetBodyInclinations(vessel.mainBody),
                 bodySemiMajorAxes = GetBodySemiMajorAxes(vessel.mainBody),
-                bodyRadii = GetBodyRadii(vessel.mainBody)
+                bodyRadii = GetBodyRadii(vessel.mainBody),
+
+                // Resources
+                resourcePartNames = GetResourcePartNames(vessel),
+                resourceTypes = GetResourceTypes(vessel),
+                resourceAmounts = GetResourceAmounts(vessel),
+                resourceMaxAmounts = GetResourceMaxAmounts(vessel)
             };
+        }
+
+        private static void GetResourceData(Vessel vessel, out List<string> partNames, out List<string> types, out List<double> amounts, out List<double> maxAmounts)
+        {
+            partNames = new List<string>();
+            types = new List<string>();
+            amounts = new List<double>();
+            maxAmounts = new List<double>();
+
+            try
+            {
+                foreach (var part in vessel.parts)
+                {
+                    foreach (var resource in part.Resources)
+                    {
+                        // Only include fuel types and electric charge
+                        if (resource.resourceName == "LiquidFuel" ||
+                            resource.resourceName == "Oxidizer" ||
+                            resource.resourceName == "MonoPropellant" ||
+                            resource.resourceName == "ElectricCharge" ||
+                            resource.resourceName == "XenonGas" ||
+                            resource.resourceName == "SolidFuel")
+                        {
+                            partNames.Add(part.partInfo?.title ?? part.name ?? "Unknown");
+                            types.Add(resource.resourceName);
+                            amounts.Add(Sanitize(resource.amount));
+                            maxAmounts.Add(Sanitize(resource.maxAmount));
+                        }
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private static string[] GetResourcePartNames(Vessel vessel)
+        {
+            GetResourceData(vessel, out var partNames, out _, out _, out _);
+            return partNames.ToArray();
+        }
+
+        private static string[] GetResourceTypes(Vessel vessel)
+        {
+            GetResourceData(vessel, out _, out var types, out _, out _);
+            return types.ToArray();
+        }
+
+        private static double[] GetResourceAmounts(Vessel vessel)
+        {
+            GetResourceData(vessel, out _, out _, out var amounts, out _);
+            return amounts.ToArray();
+        }
+
+        private static double[] GetResourceMaxAmounts(Vessel vessel)
+        {
+            GetResourceData(vessel, out _, out _, out _, out var maxAmounts);
+            return maxAmounts.ToArray();
         }
 
         private static List<CelestialBody> GetOrbitingBodies(CelestialBody mainBody)

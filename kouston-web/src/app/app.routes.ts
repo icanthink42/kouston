@@ -3,6 +3,7 @@ import { MainDisplayComponent } from './components/main-display/main-display.com
 import { OrbitalDisplayComponent } from './pages/orbital-display/orbital-display.component';
 import { EdlDisplayComponent } from './pages/edl-display/edl-display.component';
 import { PhaseDisplayComponent } from './pages/phase-display/phase-display.component';
+import { SystemsDisplayComponent } from './pages/systems-display/systems-display.component';
 
 export const routes: Routes = [
   { path: '', component: MainDisplayComponent },
@@ -10,4 +11,5 @@ export const routes: Routes = [
   { path: 'orbital', component: OrbitalDisplayComponent },
   { path: 'edl', component: EdlDisplayComponent },
   { path: 'phase', component: PhaseDisplayComponent },
+  { path: 'systems', component: SystemsDisplayComponent },
 ];
