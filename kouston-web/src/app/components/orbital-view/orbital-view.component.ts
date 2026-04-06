@@ -52,6 +52,11 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
       const trueAnomaly = this.vessel.trueAnomaly;
       const isHyperbolic = eccentricity >= 1;
 
+      // Longitude of periapsis for inertial frame rotation
+      const lan = (this.vessel.lan || 0) * Math.PI / 180;
+      const argPeriapsis = (this.vessel.argumentOfPeriapsis || 0) * Math.PI / 180;
+      const longitudeOfPeriapsis = lan + argPeriapsis;
+
       // Validate values
       if (!isFinite(semiMajorAxis) || !isFinite(eccentricity) || semiMajorAxis <= 0) {
         this.drawPlaceholder(centerX, centerY);
@@ -70,7 +75,7 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
         scale = (Math.min(width, height) / 2 - margin) / visibleRadius;
 
         if (isFinite(scale) && scale > 0) {
-          this.drawHyperbola(centerX, centerY, semiMajorAxis, eccentricity, scale);
+          this.drawHyperbola(centerX, centerY, semiMajorAxis, eccentricity, scale, longitudeOfPeriapsis);
         }
       } else {
         // Elliptical orbit
@@ -80,7 +85,7 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
         scale = (Math.min(width, height) / 2 - margin) / maxOrbitDim;
 
         if (isFinite(scale) && scale > 0) {
-          this.drawOrbit(centerX, centerY, semiMajorAxis, semiMinorAxis, focusOffset, scale);
+          this.drawOrbit(centerX, centerY, semiMajorAxis, semiMinorAxis, focusOffset, scale, longitudeOfPeriapsis);
         }
       }
 
@@ -93,10 +98,10 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
       this.drawBody(centerX, centerY, bodyRadius, semiMajorAxis * eccentricity, scale);
 
       // Draw spacecraft
-      this.drawSpacecraft(centerX, centerY, semiMajorAxis, eccentricity, trueAnomaly, semiMajorAxis * eccentricity, scale);
+      this.drawSpacecraft(centerX, centerY, semiMajorAxis, eccentricity, trueAnomaly, semiMajorAxis * eccentricity, scale, longitudeOfPeriapsis);
 
       // Draw apsides (only periapsis for hyperbolic)
-      this.drawApsides(centerX, centerY, semiMajorAxis, eccentricity, semiMajorAxis * eccentricity, scale);
+      this.drawApsides(centerX, centerY, semiMajorAxis, eccentricity, semiMajorAxis * eccentricity, scale, longitudeOfPeriapsis);
     } catch (e) {
       console.error('Error drawing orbital view:', e);
       this.drawPlaceholder(centerX, centerY);
@@ -118,14 +123,15 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
     semiMajorAxis: number,
     semiMinorAxis: number,
     focusOffset: number,
-    scale: number
+    scale: number,
+    rotation: number
   ): void {
     if (!this.ctx) return;
 
     // The ellipse center is offset from the focus (where the body is)
-    // Body is at the right focus, so ellipse center is to the left
-    const ellipseCenterX = centerX - focusOffset * scale;
-    const ellipseCenterY = centerY;
+    // Apply rotation to the offset direction
+    const ellipseCenterX = centerX - focusOffset * scale * Math.cos(rotation);
+    const ellipseCenterY = centerY + focusOffset * scale * Math.sin(rotation);
 
     this.ctx.strokeStyle = '#4a9eff';
     this.ctx.lineWidth = 2;
@@ -137,7 +143,7 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
       ellipseCenterY,
       semiMajorAxis * scale,
       semiMinorAxis * scale,
-      0, 0, Math.PI * 2
+      -rotation, 0, Math.PI * 2
     );
     this.ctx.stroke();
     this.ctx.setLineDash([]);
@@ -148,7 +154,8 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
     centerY: number,
     semiMajorAxis: number,
     eccentricity: number,
-    scale: number
+    scale: number,
+    rotation: number
   ): void {
     if (!this.ctx) return;
 
@@ -171,8 +178,10 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
       const r = p / (1 + eccentricity * Math.cos(theta));
 
       if (r > 0) {
-        const x = r * Math.cos(theta);
-        const y = r * Math.sin(theta);
+        // Apply rotation to get inertial frame position
+        const rotatedTheta = theta + rotation;
+        const x = r * Math.cos(rotatedTheta);
+        const y = r * Math.sin(rotatedTheta);
         const screenX = centerX + x * scale;
         const screenY = centerY - y * scale;
 
@@ -188,7 +197,7 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
     this.ctx.stroke();
     this.ctx.setLineDash([]);
 
-    // Draw asymptotes
+    // Draw asymptotes (also rotated)
     this.ctx.strokeStyle = '#444466';
     this.ctx.lineWidth = 1;
     this.ctx.setLineDash([3, 6]);
@@ -200,8 +209,8 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
     this.ctx.beginPath();
     this.ctx.moveTo(centerX, centerY);
     this.ctx.lineTo(
-      centerX + Math.cos(asymptoteAngle) * asymptoteLength,
-      centerY - Math.sin(asymptoteAngle) * asymptoteLength
+      centerX + Math.cos(asymptoteAngle + rotation) * asymptoteLength,
+      centerY - Math.sin(asymptoteAngle + rotation) * asymptoteLength
     );
     this.ctx.stroke();
 
@@ -209,8 +218,8 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
     this.ctx.beginPath();
     this.ctx.moveTo(centerX, centerY);
     this.ctx.lineTo(
-      centerX + Math.cos(-asymptoteAngle) * asymptoteLength,
-      centerY - Math.sin(-asymptoteAngle) * asymptoteLength
+      centerX + Math.cos(-asymptoteAngle + rotation) * asymptoteLength,
+      centerY - Math.sin(-asymptoteAngle + rotation) * asymptoteLength
     );
     this.ctx.stroke();
 
@@ -278,7 +287,8 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
     eccentricity: number,
     trueAnomaly: number,
     focusOffset: number,
-    scale: number
+    scale: number,
+    rotation: number
   ): void {
     if (!this.ctx || !this.vessel) return;
 
@@ -297,9 +307,10 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
     const r = p / denominator;
     if (!isFinite(r) || r <= 0) return;
 
-    // Position in orbital plane (focus at origin)
-    const x = r * Math.cos(trueAnomaly);
-    const y = r * Math.sin(trueAnomaly);
+    // Position in inertial frame (apply rotation)
+    const inertialAngle = trueAnomaly + rotation;
+    const x = r * Math.cos(inertialAngle);
+    const y = r * Math.sin(inertialAngle);
 
     // Screen coordinates (body/focus is at centerX, centerY)
     const screenX = centerX + x * scale;
@@ -315,8 +326,8 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
     this.ctx.fill();
     this.ctx.stroke();
 
-    // Draw velocity vector direction (tangent to orbit)
-    const velocityAngle = trueAnomaly + Math.PI / 2 + Math.atan2(eccentricity * Math.sin(trueAnomaly), 1 + eccentricity * Math.cos(trueAnomaly));
+    // Draw velocity vector direction (tangent to orbit, also rotated)
+    const velocityAngle = trueAnomaly + rotation + Math.PI / 2 + Math.atan2(eccentricity * Math.sin(trueAnomaly), 1 + eccentricity * Math.cos(trueAnomaly));
     const arrowLength = 25;
 
     this.ctx.strokeStyle = '#ffcc00';
@@ -342,7 +353,8 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
     semiMajorAxis: number,
     eccentricity: number,
     focusOffset: number,
-    scale: number
+    scale: number,
+    rotation: number
   ): void {
     if (!this.ctx || !this.vessel) return;
 
@@ -353,9 +365,9 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
       ? semiMajorAxis * (eccentricity - 1)
       : semiMajorAxis * (1 - eccentricity);
 
-    // Periapsis (closest point) - to the right of focus
-    const peX = centerX + periapsis * scale;
-    const peY = centerY;
+    // Periapsis (closest point) - rotated to inertial position
+    const peX = centerX + periapsis * scale * Math.cos(rotation);
+    const peY = centerY - periapsis * scale * Math.sin(rotation);
 
     this.ctx.fillStyle = '#00ffff';
     this.ctx.beginPath();
@@ -364,15 +376,16 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
 
     this.ctx.fillStyle = '#00ffff';
     this.ctx.font = '10px Courier New';
-    this.ctx.textAlign = 'left';
-    this.ctx.fillText(`Pe: ${this.formatAltitude(this.vessel.periapsis)}`, peX + 10, peY + 4);
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText(`Pe: ${this.formatAltitude(this.vessel.periapsis)}`, peX, peY - 10);
 
     // Only draw apoapsis for elliptical orbits
     if (!isHyperbolic) {
       const apoapsis = semiMajorAxis * (1 + eccentricity);
 
-      const apX = centerX - apoapsis * scale;
-      const apY = centerY;
+      // Apoapsis is 180° from periapsis
+      const apX = centerX - apoapsis * scale * Math.cos(rotation);
+      const apY = centerY + apoapsis * scale * Math.sin(rotation);
 
       this.ctx.fillStyle = '#ff6600';
       this.ctx.beginPath();
@@ -380,8 +393,8 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
       this.ctx.fill();
 
       this.ctx.fillStyle = '#ff6600';
-      this.ctx.textAlign = 'right';
-      this.ctx.fillText(`Ap: ${this.formatAltitude(this.vessel.apoapsis)}`, apX - 10, apY + 4);
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText(`Ap: ${this.formatAltitude(this.vessel.apoapsis)}`, apX, apY - 10);
     } else {
       // Show "ESCAPE" indicator for hyperbolic
       this.ctx.fillStyle = '#ff9944';
