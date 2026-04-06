@@ -14,10 +14,26 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
   @ViewChild('orbitCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   private ctx: CanvasRenderingContext2D | null = null;
+  private zoomLevel = 1;
+  private readonly minZoom = 0.1;
+  private readonly maxZoom = 10;
 
   ngAfterViewInit(): void {
     const canvas = this.canvasRef.nativeElement;
     this.ctx = canvas.getContext('2d');
+
+    // Add wheel event for zooming
+    canvas.addEventListener('wheel', (e) => this.onWheel(e), { passive: false });
+
+    this.draw();
+  }
+
+  private onWheel(event: WheelEvent): void {
+    event.preventDefault();
+
+    const zoomFactor = event.deltaY > 0 ? 0.9 : 1.1;
+    this.zoomLevel = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoomLevel * zoomFactor));
+
     this.draw();
   }
 
@@ -63,39 +79,45 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
         return;
       }
 
-      let scale: number;
-      const margin = 50;
+      // Find visible bodies and calculate max extent needed
+      const visibleBodies = this.getVisibleBodies();
+      let maxExtent: number;
 
       if (isHyperbolic) {
-        // Hyperbolic trajectory
         const periapsis = semiMajorAxis * (eccentricity - 1);
-        // Scale based on current distance from body for better view
         const currentR = this.vessel.altitude + bodyRadius;
-        const visibleRadius = Math.max(periapsis * 3, currentR * 1.5);
-        scale = (Math.min(width, height) / 2 - margin) / visibleRadius;
-
-        if (isFinite(scale) && scale > 0) {
-          this.drawHyperbola(centerX, centerY, semiMajorAxis, eccentricity, scale, longitudeOfPeriapsis);
-        }
+        maxExtent = Math.max(periapsis * 3, currentR * 1.5);
       } else {
-        // Elliptical orbit
-        const semiMinorAxis = semiMajorAxis * Math.sqrt(1 - eccentricity * eccentricity);
         const focusOffset = semiMajorAxis * eccentricity;
-        const maxOrbitDim = Math.max(semiMajorAxis + focusOffset, semiMinorAxis);
-        scale = (Math.min(width, height) / 2 - margin) / maxOrbitDim;
-
-        if (isFinite(scale) && scale > 0) {
-          this.drawOrbit(centerX, centerY, semiMajorAxis, semiMinorAxis, focusOffset, scale, longitudeOfPeriapsis);
-        }
+        maxExtent = semiMajorAxis + focusOffset;
       }
+
+      // Include visible body orbits in scale calculation
+      for (const body of visibleBodies) {
+        maxExtent = Math.max(maxExtent, body.sma);
+      }
+
+      const margin = 50;
+      const scale = ((Math.min(width, height) / 2 - margin) / maxExtent) * this.zoomLevel;
 
       if (!isFinite(scale) || scale <= 0) {
         this.drawPlaceholder(centerX, centerY);
         return;
       }
 
+      if (isHyperbolic) {
+        this.drawHyperbola(centerX, centerY, semiMajorAxis, eccentricity, scale, longitudeOfPeriapsis);
+      } else {
+        const semiMinorAxis = semiMajorAxis * Math.sqrt(1 - eccentricity * eccentricity);
+        const focusOffset = semiMajorAxis * eccentricity;
+        this.drawOrbit(centerX, centerY, semiMajorAxis, semiMinorAxis, focusOffset, scale, longitudeOfPeriapsis);
+      }
+
       // Draw body at focus
       this.drawBody(centerX, centerY, bodyRadius, semiMajorAxis * eccentricity, scale);
+
+      // Draw nearby system bodies (within 5 degrees inclination)
+      this.drawNearbyBodiesFromList(centerX, centerY, scale, visibleBodies);
 
       // Draw spacecraft
       this.drawSpacecraft(centerX, centerY, semiMajorAxis, eccentricity, trueAnomaly, semiMajorAxis * eccentricity, scale, longitudeOfPeriapsis);
@@ -411,5 +433,105 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
       return `${(meters / 1000).toFixed(2)} km`;
     }
     return `${meters.toFixed(0)} m`;
+  }
+
+  private getVisibleBodies(): { name: string; ta: number; rotation: number; sma: number; radius: number }[] {
+    if (!this.vessel || !this.vessel.bodyNames || this.vessel.bodyNames.length === 0) {
+      return [];
+    }
+
+    const thresholdDeg = 5;
+    const vesselInclination = this.vessel.inclination || 0;
+    const visibleBodies: { name: string; ta: number; rotation: number; sma: number; radius: number }[] = [];
+
+    for (let i = 0; i < this.vessel.bodyNames.length; i++) {
+      const bodyInclination = this.vessel.bodyInclinations?.[i] || 0;
+      const inclinationDiff = Math.abs(bodyInclination - vesselInclination);
+
+      if (inclinationDiff <= thresholdDeg) {
+        const bodyAoP = (this.vessel.bodyArgsOfPeriapsis?.[i] || 0) * Math.PI / 180;
+        const bodyLAN = (this.vessel.bodyLANs?.[i] || 0) * Math.PI / 180;
+
+        visibleBodies.push({
+          name: this.vessel.bodyNames[i],
+          ta: this.vessel.bodyTrueAnomalies?.[i] || 0,
+          rotation: bodyLAN + bodyAoP,
+          sma: this.vessel.bodySemiMajorAxes?.[i] || 0,
+          radius: this.vessel.bodyRadii?.[i] || 0
+        });
+      }
+    }
+
+    return visibleBodies;
+  }
+
+  private drawNearbyBodiesFromList(
+    centerX: number,
+    centerY: number,
+    scale: number,
+    bodies: { name: string; ta: number; rotation: number; sma: number; radius: number }[]
+  ): void {
+    if (!this.ctx) return;
+
+    for (const body of bodies) {
+      this.drawSystemBodyOrbit(centerX, centerY, body.sma, body.rotation, scale);
+      this.drawSystemBody(centerX, centerY, body.sma, body.ta, body.rotation, body.radius, body.name, scale);
+    }
+  }
+
+  private drawSystemBodyOrbit(
+    centerX: number,
+    centerY: number,
+    semiMajorAxis: number,
+    rotation: number,
+    scale: number
+  ): void {
+    if (!this.ctx) return;
+
+    // Assume circular orbit for moons (e ≈ 0)
+    this.ctx.strokeStyle = '#ff66ff';
+    this.ctx.lineWidth = 1;
+    this.ctx.setLineDash([3, 3]);
+
+    this.ctx.beginPath();
+    this.ctx.arc(centerX, centerY, semiMajorAxis * scale, 0, Math.PI * 2);
+    this.ctx.stroke();
+    this.ctx.setLineDash([]);
+  }
+
+  private drawSystemBody(
+    centerX: number,
+    centerY: number,
+    semiMajorAxis: number,
+    trueAnomaly: number,
+    rotation: number,
+    radius: number,
+    name: string,
+    scale: number
+  ): void {
+    if (!this.ctx) return;
+
+    // Position in inertial frame
+    const inertialAngle = trueAnomaly + rotation;
+    const r = semiMajorAxis; // Assuming circular orbit
+    const x = r * Math.cos(inertialAngle);
+    const y = r * Math.sin(inertialAngle);
+
+    const screenX = centerX + x * scale;
+    const screenY = centerY - y * scale;
+
+    // Draw body marker
+    const bodyScreenRadius = Math.max(radius * scale, 6);
+
+    this.ctx.fillStyle = '#ff66ff';
+    this.ctx.beginPath();
+    this.ctx.arc(screenX, screenY, bodyScreenRadius, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    // Body name
+    this.ctx.fillStyle = '#ff66ff';
+    this.ctx.font = 'bold 10px Courier New';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText(name, screenX, screenY - bodyScreenRadius - 5);
   }
 }
