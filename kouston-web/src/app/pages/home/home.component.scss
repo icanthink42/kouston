@@ -38,8 +38,8 @@ main {
 .team-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 2rem;
-  max-width: 800px;
+  gap: 3rem;
+  max-width: 1000px;
   width: 100%;
 }
 
@@ -84,11 +84,11 @@ main {
   }
 
   .flag {
-    width: 200px;
+    width: 400px;
     height: auto;
     transform: rotate(90deg);
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
-    margin: 1rem 0;
+    margin: 8rem 0;
   }
 
   h2 {
