@@ -30,7 +30,7 @@ export class TelemetryService {
   connectWithTeam(team: Team): void {
     this.teamSubject.next(team);
     const host = team === 'usa' ? 'kouston-usa.neelema.net' : 'kouston-ussr.neelema.net';
-    this.connect(host, 7777);
+    this.connect(host, 443);
   }
 
   connectLocal(ip: string, port: number = 7777): void {
@@ -44,7 +44,8 @@ export class TelemetryService {
     }
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const url = `${protocol}//${host}:${port}/web`;
+    const portSuffix = (protocol === 'wss:' && port === 443) || (protocol === 'ws:' && port === 80) ? '' : `:${port}`;
+    const url = `${protocol}//${host}${portSuffix}/web`;
     this.socket = new WebSocket(url);
 
     this.socket.onopen = () => {
