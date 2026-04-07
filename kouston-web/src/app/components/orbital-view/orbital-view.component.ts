@@ -15,8 +15,6 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
 
   private ctx: CanvasRenderingContext2D | null = null;
   private zoomLevel = 1;
-  private readonly minZoom = 0.1;
-  private readonly maxZoom = 10;
 
   ngAfterViewInit(): void {
     const canvas = this.canvasRef.nativeElement;
@@ -31,10 +29,47 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
   private onWheel(event: WheelEvent): void {
     event.preventDefault();
 
+    const { minZoom, maxZoom } = this.getZoomLimits();
     const zoomFactor = event.deltaY > 0 ? 0.9 : 1.1;
-    this.zoomLevel = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoomLevel * zoomFactor));
+    this.zoomLevel = Math.max(minZoom, Math.min(maxZoom, this.zoomLevel * zoomFactor));
 
     this.draw();
+  }
+
+  private getZoomLimits(): { minZoom: number; maxZoom: number } {
+    if (!this.vessel) {
+      return { minZoom: 0.1, maxZoom: 10 };
+    }
+
+    const bodyRadius = this.vessel.bodyRadius || 600000;
+    const semiMajorAxis = Math.abs(this.vessel.semiMajorAxis) || bodyRadius * 2;
+    const eccentricity = this.vessel.eccentricity || 0;
+
+    // Base extent is the vessel's orbit (apoapsis for elliptical)
+    const baseExtent = eccentricity >= 1
+      ? semiMajorAxis * (eccentricity - 1) * 3  // Hyperbolic: periapsis * 3
+      : semiMajorAxis * (1 + eccentricity);      // Elliptical: apoapsis
+
+    // Find the furthest body orbit for min zoom (zoom out limit)
+    let maxBodyExtent = baseExtent;
+    if (this.vessel.bodySemiMajorAxes) {
+      for (const sma of this.vessel.bodySemiMajorAxes) {
+        if (sma > maxBodyExtent) {
+          maxBodyExtent = sma;
+        }
+      }
+    }
+
+    // Min zoom: ratio to show furthest body orbit (with margin)
+    const minZoom = baseExtent / (maxBodyExtent * 1.2);
+
+    // Max zoom: ratio to show central body nicely (body fills ~1/4 of screen)
+    const maxZoom = baseExtent / (bodyRadius * 4);
+
+    return {
+      minZoom: Math.min(minZoom, 0.5),  // At least allow 2x zoom out from base
+      maxZoom: Math.max(maxZoom, 2)      // At least allow 2x zoom in from base
+    };
   }
 
   ngOnChanges(changes: SimpleChanges): void {

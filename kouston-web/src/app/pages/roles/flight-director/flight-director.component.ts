@@ -7,7 +7,7 @@ import { TelemetryState, Vessel } from '../../../models/telemetry';
 import { Subscription } from 'rxjs';
 import { OrbitalViewComponent } from '../../../components/orbital-view/orbital-view.component';
 
-type DisplayMode = 'orbital' | 'pod' | 'ascent';
+type DisplayMode = 'orbital' | 'pod' | 'lunar' | 'ascent';
 
 @Component({
   selector: 'app-flight-director',
@@ -72,15 +72,23 @@ export class FlightDirectorComponent implements OnInit, OnDestroy {
   private updateDisplayMode(): void {
     if (!this.selectedVessel) return;
 
-    // Show orbital if periapsis is above surface (in stable orbit)
-    if (this.selectedVessel.periapsis > 0) {
+    const vessel = this.selectedVessel;
+    const hasAtmosphere = (vessel.atmosphereHeight || 0) > 0;
+    const safeAltitude = hasAtmosphere ? vessel.atmosphereHeight : 0;
+
+    // Show orbital if periapsis is above atmosphere (or surface if no atmo)
+    if (vessel.periapsis > safeAltitude) {
       this.currentDisplay = 'orbital';
-    } else if (this.selectedVessel.verticalSpeed >= 0 || this.selectedVessel.throttle > 0) {
-      // On ground, ascending, or engine burning - show ascent view
+    } else if (vessel.verticalSpeed >= 0 || vessel.throttle > 0) {
+      // Going up or thrusting - show ascent view
+      this.currentDisplay = 'ascent';
+    } else if (vessel.altitude > vessel.apoapsis * 0.8) {
+      // Descending but near apoapsis - still in ascent phase
       this.currentDisplay = 'ascent';
     } else {
-      // Descending suborbital with no thrust - show pod view
-      this.currentDisplay = 'pod';
+      // Descending and well below apoapsis - EDL mode
+      // Pod for atmospheric bodies, lunar lander for airless bodies
+      this.currentDisplay = hasAtmosphere ? 'pod' : 'lunar';
     }
   }
 

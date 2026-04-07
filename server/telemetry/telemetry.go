@@ -23,6 +23,7 @@ type Vessel struct {
 	Period             float64 `json:"period"`
 	BodyRadius         float64 `json:"bodyRadius"`
 	BodyName           string  `json:"bodyName"`
+	AtmosphereHeight   float64 `json:"atmosphereHeight"`
 
 	// EDL data
 	Pitch           float64 `json:"pitch"`

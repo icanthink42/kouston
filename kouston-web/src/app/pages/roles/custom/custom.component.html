@@ -245,7 +245,7 @@
         </div>
       }
 
-      <!-- Pod -->
+      <!-- Pod (Atmospheric) -->
       @if (currentDisplay === 'pod') {
         <div class="display-view">
           <div class="pod-section">
@@ -278,6 +278,82 @@
                 </button>
               }
             </div>
+          </aside>
+        </div>
+      }
+
+      <!-- Lunar Lander (Airless) -->
+      @if (currentDisplay === 'lunar') {
+        <div class="display-view">
+          <div class="lunar-section">
+            <div class="lunar-container">
+              <div class="lunar-speeds">
+                <div class="speed-item">
+                  <span class="label">V/S</span>
+                  <span class="value" [class.negative]="selectedVessel && selectedVessel.verticalSpeed < 0">
+                    {{ selectedVessel ? formatVelocity(selectedVessel.verticalSpeed) : '--' }}
+                  </span>
+                </div>
+                <div class="speed-item">
+                  <span class="label">H/S</span>
+                  <span class="value">{{ selectedVessel ? formatVelocity(selectedVessel.horizontalSpeed) : '--' }}</span>
+                </div>
+              </div>
+              <div class="lander-display">
+                <svg viewBox="0 0 200 300" class="lander-svg" [style.transform]="'rotate(' + getLanderRotation() + 'deg)'">
+                  <rect x="70" y="100" width="60" height="80" fill="#888" stroke="#aaa" stroke-width="2"/>
+                  <line x1="70" y1="180" x2="40" y2="220" stroke="#666" stroke-width="4"/>
+                  <line x1="130" y1="180" x2="160" y2="220" stroke="#666" stroke-width="4"/>
+                  <ellipse cx="40" cy="225" rx="12" ry="5" fill="#555"/>
+                  <ellipse cx="160" cy="225" rx="12" ry="5" fill="#555"/>
+                  <path d="M 85 180 L 75 210 L 125 210 L 115 180 Z" fill="#555" stroke="#666" stroke-width="1"/>
+                  @if (selectedVessel && selectedVessel.throttle > 0) {
+                    <ellipse cx="100" cy="230" rx="15" ry="25" fill="#ff4400" [attr.opacity]="0.5 + selectedVessel.throttle * 0.5"/>
+                    <ellipse cx="100" cy="225" rx="10" ry="15" fill="#ffaa00" [attr.opacity]="0.7 + selectedVessel.throttle * 0.3"/>
+                    <ellipse cx="100" cy="220" rx="5" ry="8" fill="#ffff88"/>
+                  }
+                  <rect x="60" y="110" width="8" height="15" fill="#444"/>
+                  <rect x="132" y="110" width="8" height="15" fill="#444"/>
+                  <ellipse cx="100" cy="120" rx="15" ry="12" fill="#224" stroke="#4af" stroke-width="2"/>
+                </svg>
+              </div>
+              <div class="throttle-gauge">
+                <span class="label">THR</span>
+                <div class="gauge-bar">
+                  <div class="gauge-fill" [style.height.%]="selectedVessel ? selectedVessel.throttle * 100 : 0"></div>
+                </div>
+                <span class="value">{{ selectedVessel ? (selectedVessel.throttle * 100).toFixed(0) : '--' }}%</span>
+              </div>
+            </div>
+            <div class="radar-altitude">
+              <span class="label">Radar Altitude</span>
+              <span class="value">{{ selectedVessel ? formatAltitude(selectedVessel.radarAltitude) : '--' }}</span>
+            </div>
+          </div>
+          <aside class="telemetry-sidebar">
+            <div class="vessel-selector">
+              <h3>Vessels</h3>
+              @for (id of vesselIds; track id) {
+                <button class="vessel-tab" [class.active]="selectedVesselId === id" (click)="selectVessel(id)">
+                  {{ getVessel(id).name }}
+                </button>
+              }
+            </div>
+            @if (selectedVessel) {
+              <div class="telemetry-panel">
+                <h3>Landing Data</h3>
+                <div class="telemetry-group">
+                  <div class="telemetry-item">
+                    <span class="label">Pitch</span>
+                    <span class="value">{{ selectedVessel.pitch.toFixed(1) }}°</span>
+                  </div>
+                  <div class="telemetry-item">
+                    <span class="label">Throttle</span>
+                    <span class="value">{{ (selectedVessel.throttle * 100).toFixed(0) }}%</span>
+                  </div>
+                </div>
+              </div>
+            }
           </aside>
         </div>
       }

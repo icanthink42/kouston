@@ -26,6 +26,7 @@ namespace Kouston.Network
         public double period;
         public double bodyRadius;
         public string bodyName;
+        public double atmosphereHeight; // Height of atmosphere in meters (0 = no atmosphere)
 
         // EDL data
         public double pitch;           // Pitch angle relative to horizon (degrees)
@@ -78,6 +79,7 @@ namespace Kouston.Network
                 period = Sanitize(orbit?.period ?? 0, -1),  // -1 indicates no period (escape)
                 bodyRadius = Sanitize(vessel.mainBody?.Radius ?? 600000, 600000),
                 bodyName = vessel.mainBody?.bodyName ?? "Kerbin",
+                atmosphereHeight = Sanitize(vessel.mainBody?.atmosphereDepth ?? 0),
 
                 // EDL data
                 pitch = vessel.transform != null ?

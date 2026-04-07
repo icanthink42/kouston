@@ -19,6 +19,7 @@ export interface Vessel {
   period: number;
   bodyRadius: number;
   bodyName: string;
+  atmosphereHeight: number; // Height of atmosphere in meters (0 = no atmosphere)
 
   // EDL data
   pitch: number;           // Pitch angle relative to horizon (degrees)
