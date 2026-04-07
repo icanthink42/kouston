@@ -5,7 +5,7 @@ import { DisplayHeaderComponent } from '../../../components/display-header/displ
 import { VesselSidebarComponent } from '../../../components/vessel-sidebar/vessel-sidebar.component';
 import { OrbitalViewComponent } from '../../../components/orbital-view/orbital-view.component';
 
-type DisplayMode = 'orbital' | 'pod' | 'lunar' | 'ascent';
+type DisplayMode = 'orbital' | 'pod' | 'edl' | 'ascent';
 
 @Component({
   selector: 'app-flight-director',
@@ -53,7 +53,7 @@ export class FlightDirectorComponent extends BaseTelemetryComponent implements O
     } else if (vessel.altitude > vessel.apoapsis * 0.8) {
       this.currentDisplay = 'ascent';
     } else {
-      this.currentDisplay = hasAtmosphere ? 'pod' : 'lunar';
+      this.currentDisplay = hasAtmosphere ? 'pod' : 'edl';
     }
   }
 

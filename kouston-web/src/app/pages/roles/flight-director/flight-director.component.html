@@ -154,11 +154,11 @@
           </div>
         }
 
-        <!-- Lunar Lander Display (airless body EDL) -->
-        @if (currentDisplay === 'lunar') {
-          <div class="lunar-section">
-            <div class="lunar-container">
-              <div class="lunar-speeds">
+        <!-- EDL Lander Display (airless body) -->
+        @if (currentDisplay === 'edl') {
+          <div class="edl-section">
+            <div class="edl-container">
+              <div class="edl-speeds">
                 <div class="speed-item">
                   <span class="label">V/S</span>
                   <span class="value" [class.negative]="selectedVessel && selectedVessel.verticalSpeed < 0">
@@ -246,7 +246,7 @@
                 </div>
               </div>
 
-              @if (currentDisplay === 'pod' || currentDisplay === 'lunar') {
+              @if (currentDisplay === 'pod' || currentDisplay === 'edl') {
                 <div class="telemetry-group">
                   <div class="telemetry-item">
                     <span class="label">Vertical Speed</span>
@@ -259,7 +259,7 @@
                   </div>
                 </div>
 
-                @if (currentDisplay === 'lunar') {
+                @if (currentDisplay === 'edl') {
                   <div class="telemetry-group">
                     <div class="telemetry-item">
                       <span class="label">Pitch</span>

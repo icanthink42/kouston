@@ -7,7 +7,7 @@ import { VesselSidebarComponent } from '../../../components/vessel-sidebar/vesse
 import { OrbitalViewComponent } from '../../../components/orbital-view/orbital-view.component';
 import { OrbitalMapComponent } from '../../../components/orbital-map/orbital-map.component';
 
-type DisplayMode = 'orbital' | 'pod' | 'lunar' | 'edl' | 'ground-track' | 'phase' | 'systems' | 'ascent';
+type DisplayMode = 'orbital' | 'pod' | 'edl' | 'ground-track' | 'phase' | 'systems' | 'ascent';
 
 interface ResourceEntry {
   partName: string;
@@ -42,7 +42,6 @@ export class CustomComponent extends BaseTelemetryComponent {
     { value: 'ascent', label: 'Ascent' },
     { value: 'edl', label: 'EDL (Lander)' },
     { value: 'pod', label: 'Pod (Atmospheric)' },
-    { value: 'lunar', label: 'Lunar Lander' },
     { value: 'phase', label: 'Phase Angles' },
     { value: 'systems', label: 'Systems' },
   ];
