@@ -92,10 +92,7 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
         maxExtent = semiMajorAxis + focusOffset;
       }
 
-      // Include visible body orbits in scale calculation
-      for (const body of visibleBodies) {
-        maxExtent = Math.max(maxExtent, body.sma);
-      }
+      // Don't include visible body orbits in initial scale - users can zoom out to see them
 
       const margin = 50;
       const scale = ((Math.min(width, height) / 2 - margin) / maxExtent) * this.zoomLevel;

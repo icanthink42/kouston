@@ -8,7 +8,7 @@ import { Subscription } from 'rxjs';
 import { OrbitalViewComponent } from '../../../components/orbital-view/orbital-view.component';
 import { OrbitalMapComponent } from '../../../components/orbital-map/orbital-map.component';
 
-type DisplayMode = 'orbital' | 'pod' | 'edl' | 'ground-track' | 'phase' | 'systems';
+type DisplayMode = 'orbital' | 'pod' | 'edl' | 'ground-track' | 'phase' | 'systems' | 'ascent';
 
 interface ResourceEntry {
   partName: string;
@@ -44,11 +44,23 @@ export class CustomComponent implements OnInit, OnDestroy {
   displayOptions: { value: DisplayMode; label: string }[] = [
     { value: 'ground-track', label: 'Ground Track' },
     { value: 'orbital', label: 'Orbital View' },
+    { value: 'ascent', label: 'Ascent' },
     { value: 'edl', label: 'EDL (Lander)' },
     { value: 'pod', label: 'Pod' },
     { value: 'phase', label: 'Phase Angles' },
     { value: 'systems', label: 'Systems' },
   ];
+
+  // Pre-computed compass tick marks for ascent view
+  compassTicks = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map(deg => {
+    const rad = deg * Math.PI / 180;
+    return {
+      x1: 60 + 45 * Math.sin(rad),
+      y1: 60 - 45 * Math.cos(rad),
+      x2: 60 + 40 * Math.sin(rad),
+      y2: 60 - 40 * Math.cos(rad)
+    };
+  });
 
   serverIP = '127.0.0.1';
   serverPort = '7777';
@@ -130,6 +142,136 @@ export class CustomComponent implements OnInit, OnDestroy {
   getLanderRotation(): number {
     if (!this.selectedVessel) return 0;
     return 90 - this.selectedVessel.pitch;
+  }
+
+  // Ascent view helpers
+  getHeading(): number {
+    return 90; // Placeholder - east heading
+  }
+
+  getAscentScale(): { planetRadius: number; viewRadius: number; centerY: number } {
+    if (!this.selectedVessel) {
+      return { planetRadius: 600000, viewRadius: 2000, centerY: 800 };
+    }
+    const vessel = this.selectedVessel;
+    const planetRadius = vessel.bodyRadius || 600000;
+    const apoapsis = Math.max(vessel.apoapsis, vessel.altitude, 1000);
+    const viewRadius = Math.max(apoapsis * 2.5, 5000);
+    const viewHeight = 400;
+    const scale = viewHeight / (viewRadius * 2);
+    const centerY = viewHeight + (planetRadius * scale) - 50;
+    return { planetRadius, viewRadius, centerY };
+  }
+
+  getGroundArc(): string {
+    if (!this.selectedVessel) return '';
+    const { planetRadius, viewRadius, centerY } = this.getAscentScale();
+    const viewWidth = 600;
+    const viewHeight = 400;
+    const scale = viewHeight / (viewRadius * 2);
+    const scaledRadius = planetRadius * scale;
+    const centerX = viewWidth / 2;
+
+    const getArcY = (x: number) => {
+      const dx = x - centerX;
+      if (Math.abs(dx) > scaledRadius) return viewHeight;
+      const dy = Math.sqrt(scaledRadius * scaledRadius - dx * dx);
+      return centerY - dy;
+    };
+
+    const leftEdge = Math.max(0, centerX - scaledRadius);
+    const rightEdge = Math.min(viewWidth, centerX + scaledRadius);
+
+    const points: string[] = [];
+    points.push(`0,${viewHeight}`);
+    if (leftEdge > 0) points.push(`${leftEdge},${viewHeight}`);
+
+    for (let x = leftEdge; x <= rightEdge; x += 5) {
+      const y = getArcY(x);
+      if (y < viewHeight) points.push(`${x},${Math.max(0, y)}`);
+    }
+
+    if (rightEdge < viewWidth) points.push(`${rightEdge},${viewHeight}`);
+    points.push(`${viewWidth},${viewHeight}`);
+
+    return `M ${points.join(' L ')} Z`;
+  }
+
+  getTrajectoryPath(): string {
+    if (!this.selectedVessel) return '';
+    const vessel = this.selectedVessel;
+    const { planetRadius, viewRadius, centerY } = this.getAscentScale();
+    const viewWidth = 600;
+    const viewHeight = 400;
+    const scale = viewHeight / (viewRadius * 2);
+    const scaledRadius = planetRadius * scale;
+    const centerX = viewWidth / 2;
+
+    const alt = vessel.altitude;
+    const vSpeed = vessel.verticalSpeed;
+    const hSpeed = vessel.horizontalSpeed;
+
+    const points: string[] = [];
+    let currentAlt = alt;
+    let currentVSpeed = vSpeed;
+    let currentHDist = 0;
+    const dt = 0.5;
+
+    const startY = centerY - scaledRadius - (alt * scale);
+    points.push(`${centerX},${startY}`);
+
+    for (let t = 0; t < 300; t += dt) {
+      const localG = 9.81 * Math.pow(planetRadius / (planetRadius + currentAlt), 2);
+      currentVSpeed -= localG * dt;
+      currentAlt += currentVSpeed * dt;
+      currentHDist += hSpeed * dt;
+
+      const angle = currentHDist / planetRadius;
+      const r = planetRadius + currentAlt;
+      const x = centerX + r * Math.sin(angle) * scale;
+      const y = centerY - r * Math.cos(angle) * scale;
+
+      if (currentAlt < 0) break;
+      if (x < -50 || x > viewWidth + 50) break;
+      if (y > viewHeight + 50) break;
+      points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+    }
+    return points.length > 1 ? `M ${points.join(' L ')}` : '';
+  }
+
+  getVesselPosition(): { x: number; y: number } {
+    if (!this.selectedVessel) return { x: 300, y: 350 };
+    const { planetRadius, viewRadius, centerY } = this.getAscentScale();
+    const viewWidth = 600;
+    const viewHeight = 400;
+    const scale = viewHeight / (viewRadius * 2);
+    const scaledRadius = planetRadius * scale;
+    const x = viewWidth / 2;
+    const y = centerY - scaledRadius - (this.selectedVessel.altitude * scale);
+    return { x, y: Math.max(20, Math.min(y, viewHeight - 20)) };
+  }
+
+  getApoapsisPosition(): { x: number; y: number; visible: boolean } {
+    if (!this.selectedVessel || this.selectedVessel.apoapsis <= 0) {
+      return { x: 0, y: 0, visible: false };
+    }
+    const vessel = this.selectedVessel;
+    const { planetRadius, viewRadius, centerY } = this.getAscentScale();
+    const viewWidth = 600;
+    const viewHeight = 400;
+    const scale = viewHeight / (viewRadius * 2);
+
+    const g = 9.81;
+    const timeToApo = vessel.verticalSpeed > 0 ? vessel.verticalSpeed / g : 0;
+    const hDistToApo = vessel.horizontalSpeed * timeToApo;
+    const angle = hDistToApo / planetRadius;
+
+    const r = planetRadius + vessel.apoapsis;
+    const x = viewWidth / 2 + r * Math.sin(angle) * scale;
+    const y = centerY - r * Math.cos(angle) * scale;
+
+    const visible = x > 0 && x < viewWidth && y > 0 && y < viewHeight;
+    return { x, y, visible };
   }
 
   // Phase helpers
