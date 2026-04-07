@@ -1,14 +1,14 @@
-<div class="edl-display">
+<div class="pod-display">
   <header>
     <select class="page-dropdown" (change)="navigateTo($event)">
       <option value="/">Ground Track</option>
       <option value="/orbital">Orbital View</option>
-      <option value="/edl" selected>EDL</option>
-      <option value="/pod">Pod</option>
+      <option value="/edl">EDL</option>
+      <option value="/pod" selected>Pod</option>
       <option value="/phase">Phase Angles</option>
       <option value="/systems">Systems</option>
     </select>
-    <h1>Entry, Descent & Landing</h1>
+    <h1>Pod Reentry</h1>
     <div class="connection-controls">
       @if (!connected) {
         <input type="text" [(ngModel)]="serverIP" placeholder="Server IP" class="input-field" />
@@ -36,9 +36,9 @@
         <p class="hint">Connect from KSP to see telemetry</p>
       </div>
     } @else {
-      <div class="edl-view">
-        <div class="lander-section">
-          <div class="lander-container">
+      <div class="pod-view">
+        <div class="pod-section">
+          <div class="pod-container">
             <div class="vertical-speed">
               <span class="label">V/S</span>
               <span class="value" [class.negative]="selectedVessel && selectedVessel.verticalSpeed < 0">
@@ -46,12 +46,12 @@
               </span>
             </div>
 
-            <div class="lander-wrapper">
+            <div class="pod-wrapper">
               <img
-                [src]="selectedVessel && selectedVessel.throttle > 0 ? 'lander_fire.png' : 'lander.png'"
-                alt="Lander"
-                class="lander-image"
-                [style.transform]="'rotate(' + getLanderRotation() + 'deg)'"
+                src="pod.png"
+                alt="Pod"
+                class="pod-image"
+                [style.transform]="'rotate(' + getPodRotation() + 'deg)'"
               />
             </div>
 
@@ -86,7 +86,7 @@
 
           @if (selectedVessel) {
             <div class="telemetry-panel">
-              <h3>EDL Data</h3>
+              <h3>Reentry Data</h3>
 
               <div class="telemetry-group">
                 <div class="telemetry-item">
