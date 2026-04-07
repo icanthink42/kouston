@@ -1,0 +1,13 @@
+<div class="vessel-selector">
+  <h3>Vessels</h3>
+  @for (id of vesselIds; track id) {
+    <button
+      class="vessel-tab"
+      [class.active]="selectedVesselId === id"
+      (click)="selectVessel(id)">
+      {{ getVessel(id).name }}
+    </button>
+  }
+</div>
+
+<ng-content></ng-content>

@@ -1,18 +1,17 @@
 <div class="role-display">
-  <header>
-    <button class="home-btn" (click)="goHome()">Home</button>
-    <h1>Flight Director</h1>
-    <span class="current-display">{{ currentDisplay | uppercase }}</span>
-    <div class="connection-status" [class.connected]="connected">
-      {{ connected ? 'CONNECTED' : 'DISCONNECTED' }}
-    </div>
-  </header>
+  <app-display-header
+    title="Flight Director"
+    [subtitle]="currentDisplay | uppercase"
+    [connected]="connected"
+    [showHomeButton]="true"
+    (homeClick)="goHome()">
+  </app-display-header>
 
   <main>
     @if (!connected) {
       <div class="no-vessels">
         <p>Not connected</p>
-        <p class="hint">Enter server IP and click Connect</p>
+        <p class="hint">Select a team on the home page to connect</p>
       </div>
     } @else if (vesselIds.length === 0) {
       <div class="no-vessels">
@@ -36,15 +35,12 @@
               <div class="compass-panel">
                 <div class="compass">
                   <svg viewBox="0 0 120 120" class="compass-svg">
-                    <!-- Compass ring -->
                     <circle cx="60" cy="60" r="50" fill="none" stroke="#333" stroke-width="2"/>
                     <circle cx="60" cy="60" r="45" fill="none" stroke="#222" stroke-width="1"/>
-                    <!-- Cardinal directions -->
                     <text x="60" y="18" text-anchor="middle" fill="#4a9eff" font-size="12">N</text>
                     <text x="102" y="64" text-anchor="middle" fill="#666" font-size="10">E</text>
                     <text x="60" y="108" text-anchor="middle" fill="#666" font-size="10">S</text>
                     <text x="18" y="64" text-anchor="middle" fill="#666" font-size="10">W</text>
-                    <!-- Tick marks -->
                     @for (tick of compassTicks; track $index) {
                       <line
                         [attr.x1]="tick.x1"
@@ -53,7 +49,6 @@
                         [attr.y2]="tick.y2"
                         stroke="#444" stroke-width="1"/>
                     }
-                    <!-- Heading indicator -->
                     <polygon
                       points="60,20 55,35 65,35"
                       fill="#ff6644"
@@ -69,7 +64,6 @@
               <!-- Main trajectory view (center) -->
               <div class="trajectory-view">
                 <svg viewBox="0 0 600 400" class="trajectory-svg">
-                  <!-- Sky gradient -->
                   <defs>
                     <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                       <stop offset="0%" style="stop-color:#000010"/>
@@ -77,29 +71,19 @@
                     </linearGradient>
                   </defs>
                   <rect x="0" y="0" width="600" height="400" fill="url(#skyGradient)"/>
-
-                  <!-- Curved planet surface -->
                   <path [attr.d]="getGroundArc()" fill="#1a1a10" stroke="#3a5a3a" stroke-width="2"/>
-
-                  <!-- Trajectory path -->
                   <path [attr.d]="getTrajectoryPath()" fill="none" stroke="#4a9eff" stroke-width="2" stroke-dasharray="5,5"/>
-
-                  <!-- Apoapsis marker -->
                   @if (getApoapsisPosition().visible) {
                     <circle [attr.cx]="getApoapsisPosition().x" [attr.cy]="getApoapsisPosition().y" r="6" fill="none" stroke="#44ff44" stroke-width="2"/>
-                    <text [attr.x]="getApoapsisPosition().x + 10" [attr.y]="getApoapsisPosition().y + 4" fill="#44ff44" font-size="11">AP {{ formatAltitude(selectedVessel?.apoapsis || 0) }}</text>
+                    <text [attr.x]="getApoapsisPosition().x + 10" [attr.y]="getApoapsisPosition().y + 4" fill="#44ff44" font-size="11">AP {{ fmt.altitude(selectedVessel?.apoapsis || 0) }}</text>
                   }
-
-                  <!-- Vessel marker -->
                   <g [attr.transform]="'translate(' + getVesselPosition().x + ',' + getVesselPosition().y + ')'">
                     <circle r="6" fill="#ff6644"/>
                     <line x1="0" y1="0" x2="0" y2="-18" stroke="#ff6644" stroke-width="2"
                       [attr.transform]="'rotate(' + (90 - (selectedVessel?.pitch || 0)) + ')'"/>
                   </g>
-
-                  <!-- Altitude readout -->
                   @if (selectedVessel) {
-                    <text x="10" y="20" fill="#666" font-size="11">ALT: {{ formatAltitude(selectedVessel.altitude) }}</text>
+                    <text x="10" y="20" fill="#666" font-size="11">ALT: {{ fmt.altitude(selectedVessel.altitude) }}</text>
                   }
                 </svg>
               </div>
@@ -108,24 +92,15 @@
               <div class="attitude-panel">
                 <div class="rocket-attitude">
                   <svg viewBox="0 0 120 200" class="rocket-svg">
-                    <!-- Horizon reference -->
                     <line x1="10" y1="100" x2="110" y2="100" stroke="#333" stroke-width="1"/>
                     <text x="10" y="115" fill="#444" font-size="9">HORIZON</text>
-
-                    <!-- Pitch arc -->
                     <path d="M 60 100 A 40 40 0 0 1 60 60" fill="none" stroke="#222" stroke-width="1"/>
                     <path d="M 60 100 A 40 40 0 0 0 60 140" fill="none" stroke="#222" stroke-width="1"/>
-
-                    <!-- Rocket icon -->
                     <g [attr.transform]="'translate(60, 100) rotate(' + (90 - (selectedVessel?.pitch || 90)) + ')'">
-                      <!-- Rocket body -->
                       <path d="M 0,-30 L 8,-10 L 8,15 L 12,25 L -12,25 L -8,15 L -8,-10 Z" fill="#888" stroke="#aaa" stroke-width="1"/>
-                      <!-- Nose cone -->
                       <path d="M 0,-30 L -6,-15 L 6,-15 Z" fill="#666"/>
-                      <!-- Fins -->
                       <path d="M -8,15 L -15,25 L -8,25 Z" fill="#555"/>
                       <path d="M 8,15 L 15,25 L 8,25 Z" fill="#555"/>
-                      <!-- Engine glow when thrusting -->
                       @if (selectedVessel && selectedVessel.throttle > 0) {
                         <ellipse cx="0" cy="32" rx="6" ry="10" fill="#ff4400" opacity="0.8"/>
                         <ellipse cx="0" cy="30" rx="4" ry="6" fill="#ffaa00"/>
@@ -149,7 +124,7 @@
               <div class="vertical-speed">
                 <span class="label">V/S</span>
                 <span class="value" [class.negative]="selectedVessel && selectedVessel.verticalSpeed < 0">
-                  {{ selectedVessel ? formatVelocity(selectedVessel.verticalSpeed) : '--' }}
+                  {{ selectedVessel ? fmt.velocity(selectedVessel.verticalSpeed) : '--' }}
                 </span>
               </div>
 
@@ -165,7 +140,7 @@
               <div class="horizontal-speed">
                 <span class="label">H/S</span>
                 <span class="value">
-                  {{ selectedVessel ? formatVelocity(selectedVessel.horizontalSpeed) : '--' }}
+                  {{ selectedVessel ? fmt.velocity(selectedVessel.horizontalSpeed) : '--' }}
                 </span>
               </div>
             </div>
@@ -173,7 +148,7 @@
             <div class="radar-altitude">
               <span class="label">Radar Altitude</span>
               <span class="value">
-                {{ selectedVessel ? formatAltitude(selectedVessel.radarAltitude) : '--' }}
+                {{ selectedVessel ? fmt.altitude(selectedVessel.radarAltitude) : '--' }}
               </span>
             </div>
           </div>
@@ -187,39 +162,32 @@
                 <div class="speed-item">
                   <span class="label">V/S</span>
                   <span class="value" [class.negative]="selectedVessel && selectedVessel.verticalSpeed < 0">
-                    {{ selectedVessel ? formatVelocity(selectedVessel.verticalSpeed) : '--' }}
+                    {{ selectedVessel ? fmt.velocity(selectedVessel.verticalSpeed) : '--' }}
                   </span>
                 </div>
                 <div class="speed-item">
                   <span class="label">H/S</span>
                   <span class="value">
-                    {{ selectedVessel ? formatVelocity(selectedVessel.horizontalSpeed) : '--' }}
+                    {{ selectedVessel ? fmt.velocity(selectedVessel.horizontalSpeed) : '--' }}
                   </span>
                 </div>
               </div>
 
               <div class="lander-display">
                 <svg viewBox="0 0 200 300" class="lander-svg" [style.transform]="'rotate(' + getLanderRotation() + 'deg)'">
-                  <!-- Lander body -->
                   <rect x="70" y="100" width="60" height="80" fill="#888" stroke="#aaa" stroke-width="2"/>
-                  <!-- Legs -->
                   <line x1="70" y1="180" x2="40" y2="220" stroke="#666" stroke-width="4"/>
                   <line x1="130" y1="180" x2="160" y2="220" stroke="#666" stroke-width="4"/>
-                  <!-- Foot pads -->
                   <ellipse cx="40" cy="225" rx="12" ry="5" fill="#555"/>
                   <ellipse cx="160" cy="225" rx="12" ry="5" fill="#555"/>
-                  <!-- Engine bell -->
                   <path d="M 85 180 L 75 210 L 125 210 L 115 180 Z" fill="#555" stroke="#666" stroke-width="1"/>
-                  <!-- Engine glow when thrusting -->
                   @if (selectedVessel && selectedVessel.throttle > 0) {
                     <ellipse cx="100" cy="230" rx="15" ry="25" fill="#ff4400" [attr.opacity]="0.5 + selectedVessel.throttle * 0.5"/>
                     <ellipse cx="100" cy="225" rx="10" ry="15" fill="#ffaa00" [attr.opacity]="0.7 + selectedVessel.throttle * 0.3"/>
                     <ellipse cx="100" cy="220" rx="5" ry="8" fill="#ffff88"/>
                   }
-                  <!-- RCS thrusters -->
                   <rect x="60" y="110" width="8" height="15" fill="#444"/>
                   <rect x="132" y="110" width="8" height="15" fill="#444"/>
-                  <!-- Window -->
                   <ellipse cx="100" cy="120" rx="15" ry="12" fill="#224" stroke="#4af" stroke-width="2"/>
                 </svg>
               </div>
@@ -236,24 +204,19 @@
             <div class="radar-altitude">
               <span class="label">Radar Altitude</span>
               <span class="value">
-                {{ selectedVessel ? formatAltitude(selectedVessel.radarAltitude) : '--' }}
+                {{ selectedVessel ? fmt.altitude(selectedVessel.radarAltitude) : '--' }}
               </span>
             </div>
           </div>
         }
 
         <aside class="telemetry-sidebar">
-          <div class="vessel-selector">
-            <h3>Vessels</h3>
-            @for (id of vesselIds; track id) {
-              <button
-                class="vessel-tab"
-                [class.active]="selectedVesselId === id"
-                (click)="selectVessel(id)">
-                {{ getVessel(id).name }}
-              </button>
-            }
-          </div>
+          <app-vessel-sidebar
+            [vessels]="telemetry"
+            [vesselIds]="vesselIds"
+            [selectedVesselId]="selectedVesselId"
+            (vesselSelect)="selectVessel($event)">
+          </app-vessel-sidebar>
 
           @if (selectedVessel) {
             <div class="telemetry-panel">
@@ -262,24 +225,24 @@
               <div class="telemetry-group">
                 <div class="telemetry-item">
                   <span class="label">Periapsis</span>
-                  <span class="value">{{ formatAltitude(selectedVessel.periapsis) }}</span>
+                  <span class="value">{{ fmt.altitude(selectedVessel.periapsis) }}</span>
                 </div>
 
                 <div class="telemetry-item">
                   <span class="label">Apoapsis</span>
-                  <span class="value">{{ formatAltitude(selectedVessel.apoapsis) }}</span>
+                  <span class="value">{{ fmt.altitude(selectedVessel.apoapsis) }}</span>
                 </div>
               </div>
 
               <div class="telemetry-group">
                 <div class="telemetry-item">
                   <span class="label">Altitude</span>
-                  <span class="value">{{ formatAltitude(selectedVessel.altitude) }}</span>
+                  <span class="value">{{ fmt.altitude(selectedVessel.altitude) }}</span>
                 </div>
 
                 <div class="telemetry-item">
                   <span class="label">Velocity</span>
-                  <span class="value">{{ formatVelocity(selectedVessel.velocity) }}</span>
+                  <span class="value">{{ fmt.velocity(selectedVessel.velocity) }}</span>
                 </div>
               </div>
 
@@ -287,12 +250,12 @@
                 <div class="telemetry-group">
                   <div class="telemetry-item">
                     <span class="label">Vertical Speed</span>
-                    <span class="value">{{ formatVelocity(selectedVessel.verticalSpeed) }}</span>
+                    <span class="value">{{ fmt.velocity(selectedVessel.verticalSpeed) }}</span>
                   </div>
 
                   <div class="telemetry-item">
                     <span class="label">Radar Alt</span>
-                    <span class="value">{{ formatAltitude(selectedVessel.radarAltitude) }}</span>
+                    <span class="value">{{ fmt.altitude(selectedVessel.radarAltitude) }}</span>
                   </div>
                 </div>
 
@@ -315,12 +278,12 @@
                 <div class="telemetry-group">
                   <div class="telemetry-item">
                     <span class="label">Vertical Speed</span>
-                    <span class="value positive">{{ formatVelocity(selectedVessel.verticalSpeed) }}</span>
+                    <span class="value positive">{{ fmt.velocity(selectedVessel.verticalSpeed) }}</span>
                   </div>
 
                   <div class="telemetry-item">
                     <span class="label">Horizontal Speed</span>
-                    <span class="value">{{ formatVelocity(selectedVessel.horizontalSpeed) }}</span>
+                    <span class="value">{{ fmt.velocity(selectedVessel.horizontalSpeed) }}</span>
                   </div>
                 </div>
 

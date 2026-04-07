@@ -1,9 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import { TelemetryService } from '../../../services/telemetry.service';
-import { TelemetryState, Vessel } from '../../../models/telemetry';
-import { Subscription } from 'rxjs';
+import { BaseTelemetryComponent } from '../../../components/base-telemetry.component';
+import { DisplayHeaderComponent } from '../../../components/display-header/display-header.component';
+import { VesselSidebarComponent } from '../../../components/vessel-sidebar/vessel-sidebar.component';
 
 interface PhaseAngleData {
   name: string;
@@ -12,81 +11,16 @@ interface PhaseAngleData {
   semiMajorAxis: number;
 }
 
-type DisplayMode = 'phase';
-
 @Component({
   selector: 'app-gnc',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, DisplayHeaderComponent, VesselSidebarComponent],
   templateUrl: './gnc.component.html',
   styleUrl: './gnc.component.scss'
 })
-export class GncComponent implements OnInit, OnDestroy {
-  telemetry: TelemetryState = {};
-  connected = false;
-  vesselIds: string[] = [];
-  selectedVesselId: string | null = null;
-  currentDisplay: DisplayMode = 'phase';
-
-  private telemetrySub: Subscription | null = null;
-  private connectedSub: Subscription | null = null;
-
-  constructor(private telemetryService: TelemetryService, private router: Router) {}
-
-  ngOnInit(): void {
-    this.connectedSub = this.telemetryService.connected$.subscribe(
-      connected => this.connected = connected
-    );
-
-    this.telemetrySub = this.telemetryService.telemetry$.subscribe(
-      telemetry => {
-        this.telemetry = telemetry;
-        this.vesselIds = Object.keys(telemetry);
-
-        if (!this.selectedVesselId && this.vesselIds.length > 0) {
-          this.selectedVesselId = this.vesselIds[0];
-        }
-        if (this.selectedVesselId && !telemetry[this.selectedVesselId]) {
-          this.selectedVesselId = this.vesselIds.length > 0 ? this.vesselIds[0] : null;
-        }
-      }
-    );
-  }
-
-  ngOnDestroy(): void {
-    this.telemetrySub?.unsubscribe();
-    this.connectedSub?.unsubscribe();
-  }
-
-  get selectedVessel(): Vessel | null {
-    return this.selectedVesselId ? this.telemetry[this.selectedVesselId] : null;
-  }
-
-  selectVessel(id: string): void {
-    this.selectedVesselId = id;
-  }
-
-  getVessel(id: string): Vessel {
-    return this.telemetry[id];
-  }
-
-  goHome(): void {
-    this.router.navigate(['/']);
-  }
-
+export class GncComponent extends BaseTelemetryComponent {
   radToDeg(rad: number): number {
     return rad * (180 / Math.PI);
-  }
-
-  formatDistance(meters: number): string {
-    if (meters >= 1e9) {
-      return `${(meters / 1e9).toFixed(2)} Gm`;
-    } else if (meters >= 1e6) {
-      return `${(meters / 1e6).toFixed(2)} Mm`;
-    } else if (meters >= 1000) {
-      return `${(meters / 1000).toFixed(2)} km`;
-    }
-    return `${meters.toFixed(0)} m`;
   }
 
   getPhaseAngles(): PhaseAngleData[] {

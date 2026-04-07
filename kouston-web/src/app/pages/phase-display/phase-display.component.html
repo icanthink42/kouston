@@ -1,24 +1,17 @@
 <div class="phase-display">
-  <header>
-    <select class="page-dropdown" (change)="navigateTo($event)">
-      <option value="/ground-track">Ground Track</option>
-      <option value="/orbital">Orbital View</option>
-      <option value="/edl">EDL</option>
-      <option value="/pod">Pod</option>
-      <option value="/phase" selected>Phase Angles</option>
-      <option value="/systems">Systems</option>
-    </select>
-    <h1>Phase Angles</h1>
-    <div class="connection-status" [class.connected]="connected">
-      {{ connected ? 'CONNECTED' : 'DISCONNECTED' }}
-    </div>
-  </header>
+  <app-display-header
+    title="Phase Angles"
+    [connected]="connected"
+    [showPageDropdown]="true"
+    [pageOptions]="pageOptions"
+    (navigate)="onNavigate($event)">
+  </app-display-header>
 
   <main>
     @if (!connected) {
       <div class="no-vessels">
         <p>Not connected</p>
-        <p class="hint">Enter server IP and click Connect</p>
+        <p class="hint">Select a team on the home page to connect</p>
       </div>
     } @else if (vesselIds.length === 0) {
       <div class="no-vessels">
@@ -28,31 +21,26 @@
     } @else {
       <div class="phase-view">
         <aside class="vessel-sidebar">
-          <div class="vessel-selector">
-            <h3>Vessels</h3>
-            @for (id of vesselIds; track id) {
-              <button
-                class="vessel-tab"
-                [class.active]="selectedVesselId === id"
-                (click)="selectVessel(id)">
-                {{ getVessel(id).name }}
-              </button>
-            }
-          </div>
+          <app-vessel-sidebar
+            [vessels]="telemetry"
+            [vesselIds]="vesselIds"
+            [selectedVesselId]="selectedVesselId"
+            (vesselSelect)="selectVessel($event)">
 
-          @if (selectedVessel) {
-            <div class="vessel-info">
-              <h3>Spacecraft Position</h3>
-              <div class="info-item">
-                <span class="label">Orbiting</span>
-                <span class="value">{{ selectedVessel.bodyName }}</span>
+            @if (selectedVessel) {
+              <div class="vessel-info">
+                <h3>Spacecraft Position</h3>
+                <div class="info-item">
+                  <span class="label">Orbiting</span>
+                  <span class="value">{{ selectedVessel.bodyName }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">True Anomaly</span>
+                  <span class="value">{{ radToDeg(selectedVessel.trueAnomaly).toFixed(2) }}°</span>
+                </div>
               </div>
-              <div class="info-item">
-                <span class="label">True Anomaly</span>
-                <span class="value">{{ radToDeg(selectedVessel.trueAnomaly).toFixed(2) }}°</span>
-              </div>
-            </div>
-          }
+            }
+          </app-vessel-sidebar>
         </aside>
 
         <div class="phase-content">
@@ -81,7 +69,7 @@
                   <span class="col-inclination" [class.positive]="data.inclinationChange > 0" [class.negative]="data.inclinationChange < 0">
                     {{ data.inclinationChange > 0 ? '+' : '' }}{{ data.inclinationChange.toFixed(2) }}°
                   </span>
-                  <span class="col-sma">{{ formatDistance(data.semiMajorAxis) }}</span>
+                  <span class="col-sma">{{ fmt.distance(data.semiMajorAxis) }}</span>
                 </div>
               }
 

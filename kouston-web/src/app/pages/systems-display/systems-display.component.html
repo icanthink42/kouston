@@ -1,24 +1,17 @@
 <div class="systems-display">
-  <header>
-    <select class="page-dropdown" (change)="navigateTo($event)">
-      <option value="/ground-track">Ground Track</option>
-      <option value="/orbital">Orbital View</option>
-      <option value="/edl">EDL</option>
-      <option value="/pod">Pod</option>
-      <option value="/phase">Phase Angles</option>
-      <option value="/systems" selected>Systems</option>
-    </select>
-    <h1>Systems</h1>
-    <div class="connection-status" [class.connected]="connected">
-      {{ connected ? 'CONNECTED' : 'DISCONNECTED' }}
-    </div>
-  </header>
+  <app-display-header
+    title="Systems"
+    [connected]="connected"
+    [showPageDropdown]="true"
+    [pageOptions]="pageOptions"
+    (navigate)="onNavigate($event)">
+  </app-display-header>
 
   <main>
     @if (!connected) {
       <div class="no-vessels">
         <p>Not connected</p>
-        <p class="hint">Enter server IP and click Connect</p>
+        <p class="hint">Select a team on the home page to connect</p>
       </div>
     } @else if (vesselIds.length === 0) {
       <div class="no-vessels">
@@ -27,19 +20,12 @@
       </div>
     } @else {
       <div class="systems-view">
-        <aside class="vessel-sidebar">
-          <div class="vessel-selector">
-            <h3>Vessels</h3>
-            @for (id of vesselIds; track id) {
-              <button
-                class="vessel-tab"
-                [class.active]="selectedVesselId === id"
-                (click)="selectVessel(id)">
-                {{ getVessel(id).name }}
-              </button>
-            }
-          </div>
-        </aside>
+        <app-vessel-sidebar
+          [vessels]="telemetry"
+          [vesselIds]="vesselIds"
+          [selectedVesselId]="selectedVesselId"
+          (vesselSelect)="selectVessel($event)">
+        </app-vessel-sidebar>
 
         <div class="systems-content">
           @if (selectedVessel) {
@@ -53,11 +39,11 @@
                   <div class="resource-summary" (click)="toggleExpand(summary.type)">
                     <div class="resource-header">
                       <span class="resource-icon" [style.background]="getResourceColor(summary.type)"></span>
-                      <span class="resource-name">{{ formatResourceName(summary.type) }}</span>
+                      <span class="resource-name">{{ fmt.resourceName(summary.type) }}</span>
                       <span class="expand-icon">{{ isExpanded(summary.type) ? '-' : '+' }}</span>
                     </div>
                     <div class="resource-totals">
-                      <span class="resource-amount">{{ formatAmount(summary.totalAmount, summary.type) }} / {{ formatAmount(summary.totalMax, summary.type) }}</span>
+                      <span class="resource-amount">{{ fmt.resourceAmount(summary.totalAmount, summary.type) }} / {{ fmt.resourceAmount(summary.totalMax, summary.type) }}</span>
                       <span class="resource-percentage">{{ summary.percentage.toFixed(1) }}%</span>
                     </div>
                     <div class="resource-bar">
@@ -71,7 +57,7 @@
                         <div class="resource-entry">
                           <span class="part-name">{{ entry.partName }}</span>
                           <div class="entry-details">
-                            <span class="entry-amount">{{ formatAmount(entry.amount, entry.type) }} / {{ formatAmount(entry.maxAmount, entry.type) }}</span>
+                            <span class="entry-amount">{{ fmt.resourceAmount(entry.amount, entry.type) }} / {{ fmt.resourceAmount(entry.maxAmount, entry.type) }}</span>
                             <div class="entry-bar">
                               <div class="entry-bar-fill" [style.width.%]="entry.percentage" [style.background]="getBarColor(entry.percentage)"></div>
                             </div>

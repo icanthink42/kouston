@@ -1,0 +1,25 @@
+<header>
+  @if (showHomeButton) {
+    <button class="home-btn" (click)="homeClick.emit()">Home</button>
+  }
+
+  @if (showPageDropdown && pageOptions.length > 0) {
+    <select class="page-dropdown" (change)="onPageChange($event)">
+      @for (opt of pageOptions; track opt.value) {
+        <option [value]="opt.value" [selected]="opt.selected">{{ opt.label }}</option>
+      }
+    </select>
+  }
+
+  <h1>{{ title }}</h1>
+
+  @if (subtitle) {
+    <span class="subtitle">{{ subtitle }}</span>
+  }
+
+  <ng-content></ng-content>
+
+  <div class="connection-status" [class.connected]="connected">
+    {{ connected ? 'CONNECTED' : 'DISCONNECTED' }}
+  </div>
+</header>
