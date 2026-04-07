@@ -1,6 +1,7 @@
-import { Component, Input, ElementRef, ViewChild, AfterViewInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, ElementRef, ViewChild, AfterViewInit, OnChanges, OnDestroy, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Vessel } from '../../models/telemetry';
+import { ThemeService } from '../../services/theme.service';
 
 @Component({
   selector: 'app-orbital-view',
@@ -9,14 +10,17 @@ import { Vessel } from '../../models/telemetry';
   templateUrl: './orbital-view.component.html',
   styleUrl: './orbital-view.component.scss'
 })
-export class OrbitalViewComponent implements AfterViewInit, OnChanges {
+export class OrbitalViewComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() vessel: Vessel | null = null;
   @ViewChild('orbitCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('orbitCanvas', { read: ElementRef }) containerRef!: ElementRef;
 
   outOfPlaneCount = 0;
 
+  private themeService = inject(ThemeService);
   private ctx: CanvasRenderingContext2D | null = null;
   private zoomLevel = 1;
+  private resizeObserver: ResizeObserver | null = null;
 
   ngAfterViewInit(): void {
     const canvas = this.canvasRef.nativeElement;
@@ -25,7 +29,30 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
     // Add wheel event for zooming
     canvas.addEventListener('wheel', (e) => this.onWheel(e), { passive: false });
 
+    // Set up resize observer to fill container
+    this.resizeObserver = new ResizeObserver(() => this.resizeCanvas());
+    this.resizeObserver.observe(canvas.parentElement!);
+
+    this.resizeCanvas();
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+  }
+
+  private resizeCanvas(): void {
+    const canvas = this.canvasRef.nativeElement;
+    const parent = canvas.parentElement;
+    if (!parent) return;
+
+    const rect = parent.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
     this.draw();
+  }
+
+  private isLightMode(): boolean {
+    return this.themeService.theme() === 'light';
   }
 
   private onWheel(event: WheelEvent): void {
@@ -88,9 +115,10 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
     const height = canvas.height;
     const centerX = width / 2;
     const centerY = height / 2;
+    const light = this.isLightMode();
 
     // Clear canvas
-    this.ctx.fillStyle = '#0a0a0f';
+    this.ctx.fillStyle = light ? '#ffffff' : '#0a0a0f';
     this.ctx.fillRect(0, 0, width, height);
 
     if (!this.vessel) {
@@ -167,7 +195,7 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
   private drawPlaceholder(centerX: number, centerY: number): void {
     if (!this.ctx) return;
 
-    this.ctx.fillStyle = '#333';
+    this.ctx.fillStyle = this.isLightMode() ? '#999' : '#333';
     this.ctx.font = '16px Courier New';
     this.ctx.textAlign = 'center';
     this.ctx.fillText('No vessel selected', centerX, centerY);
@@ -254,7 +282,7 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
     this.ctx.setLineDash([]);
 
     // Draw asymptotes (also rotated)
-    this.ctx.strokeStyle = '#444466';
+    this.ctx.strokeStyle = this.isLightMode() ? '#aaaacc' : '#444466';
     this.ctx.lineWidth = 1;
     this.ctx.setLineDash([3, 6]);
 
@@ -330,7 +358,7 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
     this.ctx.fill();
 
     // Body name
-    this.ctx.fillStyle = '#ffffff';
+    this.ctx.fillStyle = this.isLightMode() ? '#000000' : '#ffffff';
     this.ctx.font = 'bold 12px Courier New';
     this.ctx.textAlign = 'center';
     this.ctx.fillText(bodyName, centerX, centerY + bodyScreenRadius + 15);
@@ -397,7 +425,7 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
     this.ctx.stroke();
 
     // Vessel name
-    this.ctx.fillStyle = '#ffffff';
+    this.ctx.fillStyle = this.isLightMode() ? '#000000' : '#ffffff';
     this.ctx.font = 'bold 12px Courier New';
     this.ctx.textAlign = 'center';
     this.ctx.fillText(this.vessel.name, screenX, screenY - 15);

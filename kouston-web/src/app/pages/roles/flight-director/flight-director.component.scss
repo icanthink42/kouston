@@ -149,7 +149,11 @@ main {
   height: calc(100vh - 100px);
 }
 
-.orbit-section, .pod-section {
+.orbit-section {
+  overflow: hidden;
+}
+
+.pod-section {
   display: flex;
   flex-direction: column;
   align-items: center;
