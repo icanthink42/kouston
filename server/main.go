@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
@@ -82,7 +83,11 @@ func main() {
 	http.HandleFunc("/ksp", handleKSPClient)
 	http.HandleFunc("/web", handleWebClient)
 
-	addr := ":7777"
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "7777"
+	}
+	addr := ":" + port
 	log.Printf("Kouston server starting on %s", addr)
 	log.Println("  /ksp - KSP game clients")
 	log.Println("  /web - Web viewer clients")
