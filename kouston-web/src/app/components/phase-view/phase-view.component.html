@@ -1,0 +1,31 @@
+<div class="phase-view">
+  @if (vessel) {
+    <div class="phase-header">
+      <h2>Phase Angles from {{ vessel.name }}</h2>
+    </div>
+    <div class="phase-table">
+      <div class="table-header">
+        <span class="col-body">Body</span>
+        <span class="col-angle">Phase Angle</span>
+        <span class="col-inclination">Rel. Inclination</span>
+        <span class="col-sma">Semi-Major Axis</span>
+      </div>
+      @for (data of getPhaseAngles(); track data.name) {
+        <div class="table-row">
+          <span class="col-body"><span class="body-name">{{ data.name }}</span></span>
+          <span class="col-angle" [class.positive]="data.phaseAngle > 0" [class.negative]="data.phaseAngle < 0">
+            {{ data.phaseAngle > 0 ? '+' : '' }}{{ radToDeg(data.phaseAngle).toFixed(2) }}°
+          </span>
+          <span class="col-inclination" [class.positive]="data.inclinationChange > 0" [class.negative]="data.inclinationChange < 0">
+            {{ data.inclinationChange > 0 ? '+' : '' }}{{ data.inclinationChange.toFixed(2) }}°
+          </span>
+          <span class="col-sma">{{ fmt.distance(data.semiMajorAxis) }}</span>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="no-vessel">
+      <p>No vessel selected</p>
+    </div>
+  }
+</div>

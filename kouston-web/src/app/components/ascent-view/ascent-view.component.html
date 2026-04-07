@@ -1,0 +1,84 @@
+<div class="ascent-view">
+  <div class="ascent-container">
+    <!-- Compass (left side) -->
+    <div class="compass-panel">
+      <div class="compass">
+        <svg viewBox="0 0 120 120" class="compass-svg">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border-color)" stroke-width="2"/>
+          <circle cx="60" cy="60" r="45" fill="none" stroke="var(--bg-secondary)" stroke-width="1"/>
+          <text x="60" y="18" text-anchor="middle" fill="var(--accent-color)" font-size="12">N</text>
+          <text x="102" y="64" text-anchor="middle" fill="var(--text-muted)" font-size="10">E</text>
+          <text x="60" y="108" text-anchor="middle" fill="var(--text-muted)" font-size="10">S</text>
+          <text x="18" y="64" text-anchor="middle" fill="var(--text-muted)" font-size="10">W</text>
+          @for (tick of compassTicks; track $index) {
+            <line
+              [attr.x1]="tick.x1"
+              [attr.y1]="tick.y1"
+              [attr.x2]="tick.x2"
+              [attr.y2]="tick.y2"
+              stroke="var(--text-muted)" stroke-width="1"/>
+          }
+          <polygon
+            points="60,20 55,35 65,35"
+            fill="#ff6644"
+            [attr.transform]="'rotate(' + getHeading() + ' 60 60)'"/>
+        </svg>
+      </div>
+      <div class="compass-value">
+        <span class="label">HDG</span>
+        <span class="value">{{ getHeading() }}°</span>
+      </div>
+    </div>
+
+    <!-- Main trajectory view (center) -->
+    <div class="trajectory-view">
+      <svg viewBox="0 0 600 400" class="trajectory-svg">
+        <defs>
+          <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#000010"/>
+            <stop offset="100%" style="stop-color:#101025"/>
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="600" height="400" fill="url(#skyGradient)"/>
+        <path [attr.d]="getGroundArc()" fill="#1a1a10" stroke="#3a5a3a" stroke-width="2"/>
+        <path [attr.d]="getTrajectoryPath()" fill="none" stroke="#4a9eff" stroke-width="2" stroke-dasharray="5,5"/>
+        @if (getApoapsisPosition().visible) {
+          <circle [attr.cx]="getApoapsisPosition().x" [attr.cy]="getApoapsisPosition().y" r="6" fill="none" stroke="#44ff44" stroke-width="2"/>
+          <text [attr.x]="getApoapsisPosition().x + 10" [attr.y]="getApoapsisPosition().y + 4" fill="#44ff44" font-size="11">AP {{ fmt.altitude(vessel?.apoapsis || 0) }}</text>
+        }
+        <g [attr.transform]="'translate(' + getVesselPosition().x + ',' + getVesselPosition().y + ')'">
+          <circle r="6" fill="#ff6644"/>
+          <line x1="0" y1="0" x2="0" y2="-18" stroke="#ff6644" stroke-width="2"
+            [attr.transform]="'rotate(' + (90 - (vessel?.pitch || 0)) + ')'"/>
+        </g>
+        @if (vessel) {
+          <text x="10" y="20" fill="#666" font-size="11">ALT: {{ fmt.altitude(vessel.altitude) }}</text>
+        }
+      </svg>
+    </div>
+
+    <!-- Rocket attitude (right side) -->
+    <div class="attitude-panel">
+      <div class="rocket-attitude">
+        <svg viewBox="0 0 120 200" class="rocket-svg">
+          <line x1="10" y1="100" x2="110" y2="100" stroke="var(--border-color)" stroke-width="1"/>
+          <text x="10" y="115" fill="var(--text-muted)" font-size="9">HORIZON</text>
+          <g [attr.transform]="'translate(60, 100) rotate(' + (90 - (vessel?.pitch || 90)) + ')'">
+            <path d="M 0,-30 L 8,-10 L 8,15 L 12,25 L -12,25 L -8,15 L -8,-10 Z" fill="#888" stroke="#aaa" stroke-width="1"/>
+            <path d="M 0,-30 L -6,-15 L 6,-15 Z" fill="#666"/>
+            <path d="M -8,15 L -15,25 L -8,25 Z" fill="#555"/>
+            <path d="M 8,15 L 15,25 L 8,25 Z" fill="#555"/>
+            @if (vessel && vessel.throttle > 0) {
+              <ellipse cx="0" cy="32" rx="6" ry="10" fill="#ff4400" opacity="0.8"/>
+              <ellipse cx="0" cy="30" rx="4" ry="6" fill="#ffaa00"/>
+            }
+          </g>
+        </svg>
+      </div>
+      <div class="pitch-value">
+        <span class="label">PITCH</span>
+        <span class="value">{{ vessel ? vessel.pitch.toFixed(1) : '--' }}°</span>
+      </div>
+    </div>
+  </div>
+</div>

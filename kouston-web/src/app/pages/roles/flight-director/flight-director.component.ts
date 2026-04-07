@@ -4,28 +4,19 @@ import { BaseTelemetryComponent } from '../../../components/base-telemetry.compo
 import { DisplayHeaderComponent } from '../../../components/display-header/display-header.component';
 import { VesselSidebarComponent } from '../../../components/vessel-sidebar/vessel-sidebar.component';
 import { OrbitalViewComponent } from '../../../components/orbital-view/orbital-view.component';
+import { EdlViewComponent } from '../../../components/edl-view/edl-view.component';
 
 type DisplayMode = 'orbital' | 'pod' | 'edl';
 
 @Component({
   selector: 'app-flight-director',
   standalone: true,
-  imports: [CommonModule, DisplayHeaderComponent, VesselSidebarComponent, OrbitalViewComponent],
+  imports: [CommonModule, DisplayHeaderComponent, VesselSidebarComponent, OrbitalViewComponent, EdlViewComponent],
   templateUrl: './flight-director.component.html',
   styleUrl: './flight-director.component.scss'
 })
 export class FlightDirectorComponent extends BaseTelemetryComponent implements OnInit {
   currentDisplay: DisplayMode = 'orbital';
-
-  compassTicks = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map(deg => {
-    const rad = deg * Math.PI / 180;
-    return {
-      x1: 60 + 45 * Math.sin(rad),
-      y1: 60 - 45 * Math.cos(rad),
-      x2: 60 + 40 * Math.sin(rad),
-      y2: 60 - 40 * Math.cos(rad)
-    };
-  });
 
   override ngOnInit(): void {
     super.ngOnInit();
@@ -58,13 +49,4 @@ export class FlightDirectorComponent extends BaseTelemetryComponent implements O
     }
   }
 
-  getLanderRotation(): number {
-    if (!this.selectedVessel) return 0;
-    return 90 - this.selectedVessel.pitch;
-  }
-
-  getHeading(): number {
-    if (!this.selectedVessel) return 0;
-    return Math.round(this.selectedVessel.heading || 0);
-  }
 }

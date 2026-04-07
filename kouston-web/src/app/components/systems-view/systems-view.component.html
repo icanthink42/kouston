@@ -1,0 +1,46 @@
+<div class="systems-view">
+  @if (vessel) {
+    <div class="systems-header">
+      <h2>{{ vessel.name }} Resources</h2>
+    </div>
+    <div class="resource-list">
+      @for (summary of getResourceSummaries(); track summary.type) {
+        <div class="resource-group">
+          <div class="resource-summary" (click)="toggleExpand(summary.type)">
+            <div class="resource-header">
+              <span class="resource-icon" [style.background]="getResourceColor(summary.type)"></span>
+              <span class="resource-name">{{ fmt.resourceName(summary.type) }}</span>
+              <span class="expand-icon">{{ isExpanded(summary.type) ? '-' : '+' }}</span>
+            </div>
+            <div class="resource-totals">
+              <span class="resource-amount">{{ fmt.resourceAmount(summary.totalAmount, summary.type) }} / {{ fmt.resourceAmount(summary.totalMax, summary.type) }}</span>
+              <span class="resource-percentage">{{ summary.percentage.toFixed(1) }}%</span>
+            </div>
+            <div class="resource-bar">
+              <div class="resource-bar-fill" [style.width.%]="summary.percentage" [style.background]="getBarColor(summary.percentage)"></div>
+            </div>
+          </div>
+          @if (isExpanded(summary.type)) {
+            <div class="resource-breakdown">
+              @for (entry of summary.entries; track entry.partName + $index) {
+                <div class="resource-entry">
+                  <span class="part-name">{{ entry.partName }}</span>
+                  <div class="entry-details">
+                    <span class="entry-amount">{{ fmt.resourceAmount(entry.amount, entry.type) }} / {{ fmt.resourceAmount(entry.maxAmount, entry.type) }}</span>
+                    <div class="entry-bar">
+                      <div class="entry-bar-fill" [style.width.%]="entry.percentage" [style.background]="getBarColor(entry.percentage)"></div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="no-vessel">
+      <p>No vessel selected</p>
+    </div>
+  }
+</div>

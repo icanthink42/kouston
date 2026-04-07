@@ -1,0 +1,64 @@
+<div class="edl-view">
+  <div class="edl-container">
+    <div class="vertical-speed">
+      <span class="label">V/S</span>
+      <span class="value" [class.negative]="vessel && vessel.verticalSpeed < 0">
+        {{ vessel ? fmt.velocity(vessel.verticalSpeed) : '--' }}
+      </span>
+    </div>
+
+    <div class="craft-wrapper">
+      <img
+        [src]="getImage()"
+        [alt]="mode === 'pod' ? 'Pod' : 'Lander'"
+        class="craft-image"
+        [style.transform]="'rotate(' + getRotation() + 'deg)'"
+      />
+    </div>
+
+    <div class="horizontal-speed">
+      <span class="label">H/S</span>
+      <span class="value">
+        {{ vessel ? fmt.velocity(vessel.horizontalSpeed) : '--' }}
+      </span>
+    </div>
+  </div>
+
+  <div class="edl-bottom">
+    <div class="radar-altitude">
+      <span class="label">Radar Altitude</span>
+      <span class="value">
+        {{ vessel ? fmt.altitude(vessel.radarAltitude) : '--' }}
+      </span>
+    </div>
+
+    <div class="compass-panel">
+      <div class="compass">
+        <svg viewBox="0 0 120 120" class="compass-svg">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border-color)" stroke-width="2"/>
+          <circle cx="60" cy="60" r="45" fill="none" stroke="var(--bg-secondary)" stroke-width="1"/>
+          <text x="60" y="18" text-anchor="middle" fill="var(--accent-color)" font-size="12">N</text>
+          <text x="102" y="64" text-anchor="middle" fill="var(--text-muted)" font-size="10">E</text>
+          <text x="60" y="108" text-anchor="middle" fill="var(--text-muted)" font-size="10">S</text>
+          <text x="18" y="64" text-anchor="middle" fill="var(--text-muted)" font-size="10">W</text>
+          @for (tick of compassTicks; track $index) {
+            <line
+              [attr.x1]="tick.x1"
+              [attr.y1]="tick.y1"
+              [attr.x2]="tick.x2"
+              [attr.y2]="tick.y2"
+              stroke="var(--text-muted)" stroke-width="1"/>
+          }
+          <polygon
+            points="60,20 55,35 65,35"
+            fill="#ff6644"
+            [attr.transform]="'rotate(' + getHeading() + ' 60 60)'"/>
+        </svg>
+      </div>
+      <div class="compass-value">
+        <span class="label">HDG</span>
+        <span class="value">{{ getHeading() }}°</span>
+      </div>
+    </div>
+  </div>
+</div>

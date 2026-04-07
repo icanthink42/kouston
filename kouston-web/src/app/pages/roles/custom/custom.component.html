@@ -26,7 +26,7 @@
       <!-- Ground Track -->
       @if (currentDisplay === 'ground-track') {
         <div class="display-view">
-          <div class="map-section">
+          <div class="view-section">
             <app-orbital-map [vessel]="selectedVessel"></app-orbital-map>
           </div>
           <aside class="telemetry-sidebar">
@@ -43,7 +43,7 @@
       <!-- Orbital View -->
       @if (currentDisplay === 'orbital') {
         <div class="display-view">
-          <div class="orbit-section">
+          <div class="view-section">
             <app-orbital-view [vessel]="selectedVessel"></app-orbital-view>
           </div>
           <aside class="telemetry-sidebar">
@@ -53,97 +53,15 @@
               [selectedVesselId]="selectedVesselId"
               (vesselSelect)="selectVessel($event)">
             </app-vessel-sidebar>
-            @if (selectedVessel) {
-              <div class="telemetry-panel">
-                <h3>Orbital Data</h3>
-                <div class="telemetry-group">
-                  <div class="telemetry-item">
-                    <span class="label">Apoapsis</span>
-                    <span class="value">{{ fmt.altitude(selectedVessel.apoapsis) }}</span>
-                  </div>
-                  <div class="telemetry-item">
-                    <span class="label">Periapsis</span>
-                    <span class="value">{{ fmt.altitude(selectedVessel.periapsis) }}</span>
-                  </div>
-                </div>
-              </div>
-            }
           </aside>
         </div>
       }
 
       <!-- Ascent -->
       @if (currentDisplay === 'ascent') {
-        <div class="ascent-view">
-          <div class="ascent-section">
-            <div class="ascent-container">
-              <div class="compass-panel">
-                <div class="compass">
-                  <svg viewBox="0 0 120 120" class="compass-svg">
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="#333" stroke-width="2"/>
-                    <circle cx="60" cy="60" r="45" fill="none" stroke="#222" stroke-width="1"/>
-                    <text x="60" y="18" text-anchor="middle" fill="#4a9eff" font-size="12">N</text>
-                    <text x="102" y="64" text-anchor="middle" fill="#666" font-size="10">E</text>
-                    <text x="60" y="108" text-anchor="middle" fill="#666" font-size="10">S</text>
-                    <text x="18" y="64" text-anchor="middle" fill="#666" font-size="10">W</text>
-                    @for (tick of compassTicks; track $index) {
-                      <line [attr.x1]="tick.x1" [attr.y1]="tick.y1" [attr.x2]="tick.x2" [attr.y2]="tick.y2" stroke="#444" stroke-width="1"/>
-                    }
-                    <polygon points="60,20 55,35 65,35" fill="#ff6644" [attr.transform]="'rotate(' + getHeading() + ' 60 60)'"/>
-                  </svg>
-                </div>
-                <div class="compass-value">
-                  <span class="label">HDG</span>
-                  <span class="value">{{ getHeading() }}°</span>
-                </div>
-              </div>
-              <div class="trajectory-view">
-                <svg viewBox="0 0 600 400" class="trajectory-svg">
-                  <defs>
-                    <linearGradient id="skyGradientCustom" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" style="stop-color:#000010"/>
-                      <stop offset="100%" style="stop-color:#101025"/>
-                    </linearGradient>
-                  </defs>
-                  <rect x="0" y="0" width="600" height="400" fill="url(#skyGradientCustom)"/>
-                  <path [attr.d]="getGroundArc()" fill="#1a1a10" stroke="#3a5a3a" stroke-width="2"/>
-                  <path [attr.d]="getTrajectoryPath()" fill="none" stroke="#4a9eff" stroke-width="2" stroke-dasharray="5,5"/>
-                  @if (getApoapsisPosition().visible) {
-                    <circle [attr.cx]="getApoapsisPosition().x" [attr.cy]="getApoapsisPosition().y" r="6" fill="none" stroke="#44ff44" stroke-width="2"/>
-                    <text [attr.x]="getApoapsisPosition().x + 10" [attr.y]="getApoapsisPosition().y + 4" fill="#44ff44" font-size="11">AP {{ fmt.altitude(selectedVessel?.apoapsis || 0) }}</text>
-                  }
-                  <g [attr.transform]="'translate(' + getVesselPosition().x + ',' + getVesselPosition().y + ')'">
-                    <circle r="6" fill="#ff6644"/>
-                    <line x1="0" y1="0" x2="0" y2="-18" stroke="#ff6644" stroke-width="2" [attr.transform]="'rotate(' + (90 - (selectedVessel?.pitch || 0)) + ')'"/>
-                  </g>
-                  @if (selectedVessel) {
-                    <text x="10" y="20" fill="#666" font-size="11">ALT: {{ fmt.altitude(selectedVessel.altitude) }}</text>
-                  }
-                </svg>
-              </div>
-              <div class="attitude-panel">
-                <div class="rocket-attitude">
-                  <svg viewBox="0 0 120 200" class="rocket-svg">
-                    <line x1="10" y1="100" x2="110" y2="100" stroke="#333" stroke-width="1"/>
-                    <text x="10" y="115" fill="#444" font-size="9">HORIZON</text>
-                    <g [attr.transform]="'translate(60, 100) rotate(' + (90 - (selectedVessel?.pitch || 90)) + ')'">
-                      <path d="M 0,-30 L 8,-10 L 8,15 L 12,25 L -12,25 L -8,15 L -8,-10 Z" fill="#888" stroke="#aaa" stroke-width="1"/>
-                      <path d="M 0,-30 L -6,-15 L 6,-15 Z" fill="#666"/>
-                      <path d="M -8,15 L -15,25 L -8,25 Z" fill="#555"/>
-                      <path d="M 8,15 L 15,25 L 8,25 Z" fill="#555"/>
-                      @if (selectedVessel && selectedVessel.throttle > 0) {
-                        <ellipse cx="0" cy="32" rx="6" ry="10" fill="#ff4400" opacity="0.8"/>
-                        <ellipse cx="0" cy="30" rx="4" ry="6" fill="#ffaa00"/>
-                      }
-                    </g>
-                  </svg>
-                </div>
-                <div class="pitch-value">
-                  <span class="label">PITCH</span>
-                  <span class="value">{{ selectedVessel ? selectedVessel.pitch.toFixed(1) : '--' }}°</span>
-                </div>
-              </div>
-            </div>
+        <div class="display-view">
+          <div class="view-section">
+            <app-ascent-view [vessel]="selectedVessel"></app-ascent-view>
           </div>
           <aside class="telemetry-sidebar">
             <app-vessel-sidebar
@@ -152,31 +70,6 @@
               [selectedVesselId]="selectedVesselId"
               (vesselSelect)="selectVessel($event)">
             </app-vessel-sidebar>
-            @if (selectedVessel) {
-              <div class="telemetry-panel">
-                <h3>Ascent Data</h3>
-                <div class="telemetry-group">
-                  <div class="telemetry-item">
-                    <span class="label">Altitude</span>
-                    <span class="value">{{ fmt.altitude(selectedVessel.altitude) }}</span>
-                  </div>
-                  <div class="telemetry-item">
-                    <span class="label">Apoapsis</span>
-                    <span class="value">{{ fmt.altitude(selectedVessel.apoapsis) }}</span>
-                  </div>
-                </div>
-                <div class="telemetry-group">
-                  <div class="telemetry-item">
-                    <span class="label">V/S</span>
-                    <span class="value">{{ fmt.velocity(selectedVessel.verticalSpeed) }}</span>
-                  </div>
-                  <div class="telemetry-item">
-                    <span class="label">H/S</span>
-                    <span class="value">{{ fmt.velocity(selectedVessel.horizontalSpeed) }}</span>
-                  </div>
-                </div>
-              </div>
-            }
           </aside>
         </div>
       }
@@ -184,49 +77,7 @@
       <!-- EDL -->
       @if (currentDisplay === 'edl') {
         <div class="display-view">
-          <div class="lander-section">
-            <div class="lander-container">
-              <div class="vertical-speed">
-                <span class="label">V/S</span>
-                <span class="value" [class.negative]="selectedVessel && selectedVessel.verticalSpeed < 0">
-                  {{ selectedVessel ? fmt.velocity(selectedVessel.verticalSpeed) : '--' }}
-                </span>
-              </div>
-              <div class="lander-wrapper">
-                <img [src]="selectedVessel && selectedVessel.throttle > 0 ? 'lander_fire.png' : 'lander.png'" alt="Lander" class="lander-image" [style.transform]="'rotate(' + getLanderRotation() + 'deg)'"/>
-              </div>
-              <div class="horizontal-speed">
-                <span class="label">H/S</span>
-                <span class="value">{{ selectedVessel ? fmt.velocity(selectedVessel.horizontalSpeed) : '--' }}</span>
-              </div>
-            </div>
-            <div class="edl-bottom">
-              <div class="radar-altitude">
-                <span class="label">Radar Altitude</span>
-                <span class="value">{{ selectedVessel ? fmt.altitude(selectedVessel.radarAltitude) : '--' }}</span>
-              </div>
-              <div class="compass-panel">
-                <div class="compass">
-                  <svg viewBox="0 0 120 120" class="compass-svg">
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border-color)" stroke-width="2"/>
-                    <circle cx="60" cy="60" r="45" fill="none" stroke="var(--bg-secondary)" stroke-width="1"/>
-                    <text x="60" y="18" text-anchor="middle" fill="var(--accent-color)" font-size="12">N</text>
-                    <text x="102" y="64" text-anchor="middle" fill="var(--text-muted)" font-size="10">E</text>
-                    <text x="60" y="108" text-anchor="middle" fill="var(--text-muted)" font-size="10">S</text>
-                    <text x="18" y="64" text-anchor="middle" fill="var(--text-muted)" font-size="10">W</text>
-                    @for (tick of compassTicks; track $index) {
-                      <line [attr.x1]="tick.x1" [attr.y1]="tick.y1" [attr.x2]="tick.x2" [attr.y2]="tick.y2" stroke="var(--text-muted)" stroke-width="1"/>
-                    }
-                    <polygon points="60,20 55,35 65,35" fill="#ff6644" [attr.transform]="'rotate(' + getHeading() + ' 60 60)'"/>
-                  </svg>
-                </div>
-                <div class="compass-value">
-                  <span class="label">HDG</span>
-                  <span class="value">{{ getHeading() }}°</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <app-edl-view [vessel]="selectedVessel" mode="lander"></app-edl-view>
           <aside class="telemetry-sidebar">
             <app-vessel-sidebar
               [vessels]="telemetry"
@@ -241,49 +92,7 @@
       <!-- Pod -->
       @if (currentDisplay === 'pod') {
         <div class="display-view">
-          <div class="pod-section">
-            <div class="pod-container">
-              <div class="vertical-speed">
-                <span class="label">V/S</span>
-                <span class="value" [class.negative]="selectedVessel && selectedVessel.verticalSpeed < 0">
-                  {{ selectedVessel ? fmt.velocity(selectedVessel.verticalSpeed) : '--' }}
-                </span>
-              </div>
-              <div class="pod-wrapper">
-                <img src="pod.png" alt="Pod" class="pod-image" [style.transform]="'rotate(' + getLanderRotation() + 'deg)'"/>
-              </div>
-              <div class="horizontal-speed">
-                <span class="label">H/S</span>
-                <span class="value">{{ selectedVessel ? fmt.velocity(selectedVessel.horizontalSpeed) : '--' }}</span>
-              </div>
-            </div>
-            <div class="edl-bottom">
-              <div class="radar-altitude">
-                <span class="label">Radar Altitude</span>
-                <span class="value">{{ selectedVessel ? fmt.altitude(selectedVessel.radarAltitude) : '--' }}</span>
-              </div>
-              <div class="compass-panel">
-                <div class="compass">
-                  <svg viewBox="0 0 120 120" class="compass-svg">
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border-color)" stroke-width="2"/>
-                    <circle cx="60" cy="60" r="45" fill="none" stroke="var(--bg-secondary)" stroke-width="1"/>
-                    <text x="60" y="18" text-anchor="middle" fill="var(--accent-color)" font-size="12">N</text>
-                    <text x="102" y="64" text-anchor="middle" fill="var(--text-muted)" font-size="10">E</text>
-                    <text x="60" y="108" text-anchor="middle" fill="var(--text-muted)" font-size="10">S</text>
-                    <text x="18" y="64" text-anchor="middle" fill="var(--text-muted)" font-size="10">W</text>
-                    @for (tick of compassTicks; track $index) {
-                      <line [attr.x1]="tick.x1" [attr.y1]="tick.y1" [attr.x2]="tick.x2" [attr.y2]="tick.y2" stroke="var(--text-muted)" stroke-width="1"/>
-                    }
-                    <polygon points="60,20 55,35 65,35" fill="#ff6644" [attr.transform]="'rotate(' + getHeading() + ' 60 60)'"/>
-                  </svg>
-                </div>
-                <div class="compass-value">
-                  <span class="label">HDG</span>
-                  <span class="value">{{ getHeading() }}°</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <app-edl-view [vessel]="selectedVessel" mode="pod"></app-edl-view>
           <aside class="telemetry-sidebar">
             <app-vessel-sidebar
               [vessels]="telemetry"
@@ -297,62 +106,24 @@
 
       <!-- Phase Angles -->
       @if (currentDisplay === 'phase') {
-        <div class="phase-view">
-          <aside class="vessel-sidebar">
+        <div class="display-view">
+          <app-phase-view [vessel]="selectedVessel"></app-phase-view>
+          <aside class="telemetry-sidebar">
             <app-vessel-sidebar
               [vessels]="telemetry"
               [vesselIds]="vesselIds"
               [selectedVesselId]="selectedVesselId"
               (vesselSelect)="selectVessel($event)">
-              @if (selectedVessel) {
-                <div class="vessel-info">
-                  <h3>Spacecraft Position</h3>
-                  <div class="info-item">
-                    <span class="label">Orbiting</span>
-                    <span class="value">{{ selectedVessel.bodyName }}</span>
-                  </div>
-                  <div class="info-item">
-                    <span class="label">True Anomaly</span>
-                    <span class="value">{{ radToDeg(selectedVessel.trueAnomaly).toFixed(2) }}°</span>
-                  </div>
-                </div>
-              }
             </app-vessel-sidebar>
           </aside>
-          <div class="phase-content">
-            @if (selectedVessel) {
-              <div class="phase-header">
-                <h2>Phase Angles from {{ selectedVessel.name }}</h2>
-              </div>
-              <div class="phase-table">
-                <div class="table-header">
-                  <span class="col-body">Body</span>
-                  <span class="col-angle">Phase Angle</span>
-                  <span class="col-inclination">Rel. Inclination</span>
-                  <span class="col-sma">Semi-Major Axis</span>
-                </div>
-                @for (data of getPhaseAngles(); track data.name) {
-                  <div class="table-row">
-                    <span class="col-body"><span class="body-name">{{ data.name }}</span></span>
-                    <span class="col-angle" [class.positive]="data.phaseAngle > 0" [class.negative]="data.phaseAngle < 0">
-                      {{ data.phaseAngle > 0 ? '+' : '' }}{{ radToDeg(data.phaseAngle).toFixed(2) }}°
-                    </span>
-                    <span class="col-inclination" [class.positive]="data.inclinationChange > 0" [class.negative]="data.inclinationChange < 0">
-                      {{ data.inclinationChange > 0 ? '+' : '' }}{{ data.inclinationChange.toFixed(2) }}°
-                    </span>
-                    <span class="col-sma">{{ fmt.distance(data.semiMajorAxis) }}</span>
-                  </div>
-                }
-              </div>
-            }
-          </div>
         </div>
       }
 
       <!-- Systems -->
       @if (currentDisplay === 'systems') {
-        <div class="systems-view">
-          <aside class="vessel-sidebar">
+        <div class="display-view">
+          <app-systems-view [vessel]="selectedVessel"></app-systems-view>
+          <aside class="telemetry-sidebar">
             <app-vessel-sidebar
               [vessels]="telemetry"
               [vesselIds]="vesselIds"
@@ -360,48 +131,6 @@
               (vesselSelect)="selectVessel($event)">
             </app-vessel-sidebar>
           </aside>
-          <div class="systems-content">
-            @if (selectedVessel) {
-              <div class="systems-header">
-                <h2>{{ selectedVessel.name }} Resources</h2>
-              </div>
-              <div class="resource-list">
-                @for (summary of getResourceSummaries(); track summary.type) {
-                  <div class="resource-group">
-                    <div class="resource-summary" (click)="toggleExpand(summary.type)">
-                      <div class="resource-header">
-                        <span class="resource-icon" [style.background]="getResourceColor(summary.type)"></span>
-                        <span class="resource-name">{{ fmt.resourceName(summary.type) }}</span>
-                        <span class="expand-icon">{{ isExpanded(summary.type) ? '-' : '+' }}</span>
-                      </div>
-                      <div class="resource-totals">
-                        <span class="resource-amount">{{ fmt.resourceAmount(summary.totalAmount, summary.type) }} / {{ fmt.resourceAmount(summary.totalMax, summary.type) }}</span>
-                        <span class="resource-percentage">{{ summary.percentage.toFixed(1) }}%</span>
-                      </div>
-                      <div class="resource-bar">
-                        <div class="resource-bar-fill" [style.width.%]="summary.percentage" [style.background]="getBarColor(summary.percentage)"></div>
-                      </div>
-                    </div>
-                    @if (isExpanded(summary.type)) {
-                      <div class="resource-breakdown">
-                        @for (entry of summary.entries; track entry.partName + $index) {
-                          <div class="resource-entry">
-                            <span class="part-name">{{ entry.partName }}</span>
-                            <div class="entry-details">
-                              <span class="entry-amount">{{ fmt.resourceAmount(entry.amount, entry.type) }} / {{ fmt.resourceAmount(entry.maxAmount, entry.type) }}</span>
-                              <div class="entry-bar">
-                                <div class="entry-bar-fill" [style.width.%]="entry.percentage" [style.background]="getBarColor(entry.percentage)"></div>
-                              </div>
-                            </div>
-                          </div>
-                        }
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-            }
-          </div>
         </div>
       }
     }

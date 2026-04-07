@@ -1,0 +1,123 @@
+.edl-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 2rem;
+}
+
+.edl-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+}
+
+.craft-wrapper {
+  width: 400px;
+  height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.craft-image {
+  max-width: 100%;
+  max-height: 100%;
+  transition: transform 0.1s ease-out;
+  filter: invert(var(--image-invert));
+}
+
+.vertical-speed, .horizontal-speed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 120px;
+
+  .label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent-color);
+
+    &.negative {
+      color: var(--accent-orange);
+    }
+  }
+}
+
+.edl-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rem;
+  margin-top: 2rem;
+}
+
+.radar-altitude {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+
+  .label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--accent-green);
+  }
+}
+
+.compass-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.compass {
+  width: 100px;
+  height: 100px;
+}
+
+.compass-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.compass-value {
+  margin-top: 0.5rem;
+  text-align: center;
+
+  .label {
+    display: block;
+    font-size: 0.625rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 0.25rem;
+  }
+
+  .value {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: var(--accent-color);
+  }
+}
