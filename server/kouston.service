@@ -1,0 +1,23 @@
+[Unit]
+Description=Kouston Server on port %i
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/kouston/kouston-server
+WorkingDirectory=/opt/kouston
+Restart=on-failure
+RestartSec=5
+
+Environment=PORT=%i
+
+# Uncomment to run as a dedicated user instead of root
+# User=kouston
+# Group=kouston
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
