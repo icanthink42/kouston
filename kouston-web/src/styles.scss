@@ -15,6 +15,7 @@
   --accent-magenta: #ff66ff;
   --header-bg: #111;
   --card-bg: #151520;
+  --image-invert: 1;
 }
 
 [data-theme="light"] {
@@ -34,6 +35,7 @@
   --accent-magenta: #aa44aa;
   --header-bg: #e0e0e5;
   --card-bg: #fff;
+  --image-invert: 0;
 }
 
 * {

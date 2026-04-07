@@ -41,11 +41,11 @@ header {
 
 .current-display {
   padding: 0.25rem 0.75rem;
-  background: #2a3a4a;
-  border: 1px solid #4a9eff;
+  background: var(--bg-hover);
+  border: 1px solid var(--accent-color);
   border-radius: 4px;
   font-size: 0.75rem;
-  color: #4a9eff;
+  color: var(--accent-color);
   letter-spacing: 1px;
 }
 
@@ -57,10 +57,10 @@ header {
 
 .input-field {
   padding: 0.5rem 0.75rem;
-  background: #1a1a24;
-  border: 1px solid #333;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #fff;
+  color: var(--text-primary);
   font-family: inherit;
   font-size: 0.875rem;
   width: 140px;
@@ -71,12 +71,12 @@ header {
 
   &:focus {
     outline: none;
-    border-color: #4a9eff;
+    border-color: var(--accent-color);
   }
 }
 
 .server-info {
-  color: #888;
+  color: var(--text-secondary);
   font-size: 0.875rem;
 }
 
@@ -90,20 +90,20 @@ header {
   cursor: pointer;
 
   &.connect {
-    background: #2a5a8a;
+    background: var(--accent-color);
     color: #fff;
 
     &:hover {
-      background: #3a6a9a;
+      filter: brightness(1.1);
     }
   }
 
   &.disconnect {
-    background: #5a2a2a;
+    background: var(--accent-red);
     color: #fff;
 
     &:hover {
-      background: #6a3a3a;
+      filter: brightness(1.1);
     }
   }
 }
@@ -129,7 +129,7 @@ main {
 .no-vessels {
   text-align: center;
   padding: 4rem;
-  color: #666;
+  color: var(--text-muted);
 
   p {
     margin: 0.5rem 0;
@@ -138,7 +138,7 @@ main {
 
   .hint {
     font-size: 0.875rem;
-    color: #444;
+    color: var(--text-muted);
   }
 }
 
@@ -202,20 +202,20 @@ main {
     display: flex;
     justify-content: space-between;
     padding: 0.5rem 0;
-    border-bottom: 1px solid #222;
+    border-bottom: 1px solid var(--border-color);
 
     &:last-child {
       border-bottom: none;
     }
 
     .label {
-      color: #666;
+      color: var(--text-muted);
       font-size: 0.75rem;
       text-transform: uppercase;
     }
 
     .value {
-      color: #fff;
+      color: var(--text-primary);
       font-size: 0.875rem;
     }
   }
@@ -235,13 +235,13 @@ main {
   h2 {
     margin: 0 0 0.5rem 0;
     font-size: 1.25rem;
-    color: #fff;
+    color: var(--text-primary);
   }
 
   .subtitle {
     margin: 0;
     font-size: 0.875rem;
-    color: #666;
+    color: var(--text-muted);
   }
 }
 
@@ -250,11 +250,11 @@ main {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
     padding: 0.75rem 1rem;
-    background: #1a1a24;
+    background: var(--bg-secondary);
     border-radius: 4px;
     margin-bottom: 0.5rem;
     font-size: 0.75rem;
-    color: #666;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 1px;
   }
@@ -263,29 +263,29 @@ main {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr;
     padding: 0.75rem 1rem;
-    border-bottom: 1px solid #222;
+    border-bottom: 1px solid var(--border-color);
 
     &:hover {
-      background: #1a1a24;
+      background: var(--bg-hover);
     }
 
     .body-name {
-      color: #fff;
+      color: var(--text-primary);
       font-weight: bold;
     }
 
     .positive {
-      color: #44ff44;
+      color: var(--accent-green);
     }
 
     .negative {
-      color: #ff6644;
+      color: var(--accent-orange);
     }
   }
 
   .no-data {
     text-align: center;
     padding: 2rem;
-    color: #666;
+    color: var(--text-muted);
   }
 }
