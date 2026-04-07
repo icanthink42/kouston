@@ -23,6 +23,7 @@ export interface Vessel {
 
   // EDL data
   pitch: number;           // Pitch angle relative to horizon (degrees)
+  heading: number;         // Compass heading (degrees, 0 = north)
   verticalSpeed: number;   // Vertical velocity (m/s, negative = descending)
   horizontalSpeed: number; // Horizontal velocity (m/s)
   radarAltitude: number;   // Height above terrain (m)

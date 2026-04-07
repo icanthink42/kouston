@@ -17,6 +17,16 @@ type DisplayMode = 'orbital' | 'pod' | 'edl';
 export class FlightDirectorComponent extends BaseTelemetryComponent implements OnInit {
   currentDisplay: DisplayMode = 'orbital';
 
+  compassTicks = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map(deg => {
+    const rad = deg * Math.PI / 180;
+    return {
+      x1: 60 + 45 * Math.sin(rad),
+      y1: 60 - 45 * Math.cos(rad),
+      x2: 60 + 40 * Math.sin(rad),
+      y2: 60 - 40 * Math.cos(rad)
+    };
+  });
+
   override ngOnInit(): void {
     super.ngOnInit();
     this.telemetryService.telemetry$.subscribe(() => {
@@ -51,5 +61,10 @@ export class FlightDirectorComponent extends BaseTelemetryComponent implements O
   getLanderRotation(): number {
     if (!this.selectedVessel) return 0;
     return 90 - this.selectedVessel.pitch;
+  }
+
+  getHeading(): number {
+    if (!this.selectedVessel) return 0;
+    return Math.round(this.selectedVessel.heading || 0);
   }
 }

@@ -62,7 +62,8 @@ export class CustomComponent extends BaseTelemetryComponent {
   }
 
   getHeading(): number {
-    return 90;
+    if (!this.selectedVessel) return 0;
+    return Math.round(this.selectedVessel.heading || 0);
   }
 
   getAscentScale(): { planetRadius: number; viewRadius: number; centerY: number } {
