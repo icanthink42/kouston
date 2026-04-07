@@ -4,14 +4,47 @@
   </header>
 
   <main>
-    <h2 class="section-title">Select Role</h2>
-    <div class="role-grid">
-      @for (role of roles; track role.path) {
-        <button class="role-card" (click)="navigateTo(role.path)">
-          <h2>{{ role.name }}</h2>
-          <p>{{ role.description }}</p>
-        </button>
+    @if (!connected) {
+      @if (isLocal) {
+        <h2 class="section-title">Connect to Server</h2>
+        <div class="local-connect">
+          <input
+            type="text"
+            [(ngModel)]="localIP"
+            placeholder="Server IP"
+            class="input-field"
+          />
+          <input
+            type="text"
+            [(ngModel)]="localPort"
+            placeholder="Port"
+            class="input-field port"
+          />
+          <button (click)="connectLocal()" class="btn connect">Connect</button>
+        </div>
+      } @else {
+        <h2 class="section-title">Select Your Team</h2>
+        <div class="team-grid">
+          <button class="team-card usa" (click)="selectTeam('usa')">
+            <h2>USA</h2>
+            <p>Connect to Houston</p>
+          </button>
+          <button class="team-card ussr" (click)="selectTeam('ussr')">
+            <h2>USSR</h2>
+            <p>Connect to Baikonur</p>
+          </button>
+        </div>
       }
-    </div>
+    } @else {
+      <h2 class="section-title">Select Role</h2>
+      <div class="role-grid">
+        @for (role of roles; track role.path) {
+          <button class="role-card" (click)="navigateTo(role.path)">
+            <h2>{{ role.name }}</h2>
+            <p>{{ role.description }}</p>
+          </button>
+        }
+      </div>
+    }
   </main>
 </div>

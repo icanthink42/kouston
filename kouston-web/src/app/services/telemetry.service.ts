@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { TelemetryState } from '../models/telemetry';
 
+export type Team = 'usa' | 'ussr';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -9,17 +11,40 @@ export class TelemetryService {
   private socket: WebSocket | null = null;
   private telemetrySubject = new BehaviorSubject<TelemetryState>({});
   private connectedSubject = new BehaviorSubject<boolean>(false);
+  private teamSubject = new BehaviorSubject<Team | null>(null);
   private pollInterval: number | null = null;
 
   public telemetry$: Observable<TelemetryState> = this.telemetrySubject.asObservable();
   public connected$: Observable<boolean> = this.connectedSubject.asObservable();
+  public team$: Observable<Team | null> = this.teamSubject.asObservable();
+
+  get isLocal(): boolean {
+    const host = window.location.hostname;
+    return host === 'localhost' || host === '127.0.0.1' || host === '';
+  }
+
+  get currentTeam(): Team | null {
+    return this.teamSubject.value;
+  }
+
+  connectWithTeam(team: Team): void {
+    this.teamSubject.next(team);
+    const host = team === 'usa' ? 'kouston-usa.neelema.net' : 'kouston-ussr.neelema.net';
+    this.connect(host, 7777);
+  }
+
+  connectLocal(ip: string, port: number = 7777): void {
+    this.teamSubject.next(null);
+    this.connect(ip, port);
+  }
 
   connect(host: string = 'localhost', port: number = 7777): void {
     if (this.socket) {
       this.disconnect();
     }
 
-    const url = `ws://${host}:${port}/web`;
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const url = `${protocol}//${host}:${port}/web`;
     this.socket = new WebSocket(url);
 
     this.socket.onopen = () => {
@@ -54,6 +79,7 @@ export class TelemetryService {
       this.socket.close();
       this.socket = null;
     }
+    this.teamSubject.next(null);
   }
 
   private startPolling(): void {

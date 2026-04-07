@@ -1,6 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TelemetryService } from '../../../services/telemetry.service';
 import { TelemetryState, Vessel } from '../../../models/telemetry';
@@ -27,7 +26,7 @@ type DisplayMode = 'systems';
 @Component({
   selector: 'app-eecom',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './eecom.component.html',
   styleUrl: './eecom.component.scss'
 })
@@ -38,9 +37,6 @@ export class EecomComponent implements OnInit, OnDestroy {
   selectedVesselId: string | null = null;
   currentDisplay: DisplayMode = 'systems';
   expandedResources: Set<string> = new Set();
-
-  serverIP = '127.0.0.1';
-  serverPort = '7777';
 
   private telemetrySub: Subscription | null = null;
   private connectedSub: Subscription | null = null;
@@ -78,17 +74,6 @@ export class EecomComponent implements OnInit, OnDestroy {
 
   selectVessel(id: string): void {
     this.selectedVesselId = id;
-  }
-
-  connect(): void {
-    const port = parseInt(this.serverPort, 10);
-    if (!isNaN(port)) {
-      this.telemetryService.connect(this.serverIP, port);
-    }
-  }
-
-  disconnect(): void {
-    this.telemetryService.disconnect();
   }
 
   getVessel(id: string): Vessel {

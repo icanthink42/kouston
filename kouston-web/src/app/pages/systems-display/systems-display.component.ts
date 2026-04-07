@@ -1,6 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TelemetryService } from '../../services/telemetry.service';
 import { TelemetryState, Vessel } from '../../models/telemetry';
@@ -25,7 +24,7 @@ interface ResourceSummary {
 @Component({
   selector: 'app-systems-display',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './systems-display.component.html',
   styleUrl: './systems-display.component.scss'
 })
@@ -34,9 +33,6 @@ export class SystemsDisplayComponent implements OnInit, OnDestroy {
   connected = false;
   vesselIds: string[] = [];
   selectedVesselId: string | null = null;
-
-  serverIP = '127.0.0.1';
-  serverPort = '7777';
 
   expandedResources: Set<string> = new Set();
 
@@ -81,17 +77,6 @@ export class SystemsDisplayComponent implements OnInit, OnDestroy {
 
   selectVessel(id: string): void {
     this.selectedVesselId = id;
-  }
-
-  connect(): void {
-    const port = parseInt(this.serverPort, 10);
-    if (!isNaN(port)) {
-      this.telemetryService.connect(this.serverIP, port);
-    }
-  }
-
-  disconnect(): void {
-    this.telemetryService.disconnect();
   }
 
   getVessel(id: string): Vessel {

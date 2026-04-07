@@ -35,6 +35,111 @@ main {
   letter-spacing: 2px;
 }
 
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  max-width: 600px;
+  width: 100%;
+}
+
+.team-card {
+  background: #151520;
+  border: 2px solid #333;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  cursor: pointer;
+  text-align: center;
+  font-family: inherit;
+  transition: all 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+  }
+
+  &.usa {
+    &:hover {
+      background: #1a1a2a;
+      border-color: #4a9eff;
+    }
+
+    h2 {
+      color: #4a9eff;
+    }
+  }
+
+  &.ussr {
+    &:hover {
+      background: #2a1a1a;
+      border-color: #ff4a4a;
+    }
+
+    h2 {
+      color: #ff4a4a;
+    }
+  }
+
+  h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #888;
+  }
+}
+
+.local-connect {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.input-field {
+  padding: 0.75rem 1rem;
+  background: #1a1a24;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  width: 180px;
+
+  &.port {
+    width: 80px;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #4a9eff;
+  }
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+
+  &.connect {
+    background: #2a5a8a;
+    color: #fff;
+
+    &:hover {
+      background: #3a6a9a;
+    }
+  }
+}
+
 .role-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

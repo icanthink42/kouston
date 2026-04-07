@@ -1,6 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TelemetryService } from '../../../services/telemetry.service';
 import { TelemetryState, Vessel } from '../../../models/telemetry';
@@ -12,7 +11,7 @@ type DisplayMode = 'orbital' | 'pod' | 'lunar' | 'ascent';
 @Component({
   selector: 'app-flight-director',
   standalone: true,
-  imports: [CommonModule, FormsModule, OrbitalViewComponent],
+  imports: [CommonModule, OrbitalViewComponent],
   templateUrl: './flight-director.component.html',
   styleUrl: './flight-director.component.scss'
 })
@@ -22,9 +21,6 @@ export class FlightDirectorComponent implements OnInit, OnDestroy {
   vesselIds: string[] = [];
   selectedVesselId: string | null = null;
   currentDisplay: DisplayMode = 'orbital';
-
-  serverIP = '127.0.0.1';
-  serverPort = '7777';
 
   // Pre-computed compass tick marks
   compassTicks = [0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map(deg => {
@@ -99,17 +95,6 @@ export class FlightDirectorComponent implements OnInit, OnDestroy {
   selectVessel(id: string): void {
     this.selectedVesselId = id;
     this.updateDisplayMode();
-  }
-
-  connect(): void {
-    const port = parseInt(this.serverPort, 10);
-    if (!isNaN(port)) {
-      this.telemetryService.connect(this.serverIP, port);
-    }
-  }
-
-  disconnect(): void {
-    this.telemetryService.disconnect();
   }
 
   getVessel(id: string): Vessel {

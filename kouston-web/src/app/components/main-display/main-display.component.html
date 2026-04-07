@@ -9,18 +9,8 @@
       <option value="/systems">Systems</option>
     </select>
     <h1>Ground Track</h1>
-    <div class="connection-controls">
-      @if (!connected) {
-        <input type="text" [(ngModel)]="serverIP" placeholder="Server IP" class="input-field" />
-        <input type="text" [(ngModel)]="serverPort" placeholder="Port" class="input-field port" />
-        <button (click)="connect()" class="btn connect">Connect</button>
-      } @else {
-        <span class="server-info">{{ serverIP }}:{{ serverPort }}</span>
-        <button (click)="disconnect()" class="btn disconnect">Disconnect</button>
-      }
-      <div class="connection-status" [class.connected]="connected">
-        {{ connected ? 'CONNECTED' : 'DISCONNECTED' }}
-      </div>
+    <div class="connection-status" [class.connected]="connected">
+      {{ connected ? 'CONNECTED' : 'DISCONNECTED' }}
     </div>
   </header>
 

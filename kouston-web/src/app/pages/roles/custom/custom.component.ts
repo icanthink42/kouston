@@ -63,9 +63,6 @@ export class CustomComponent implements OnInit, OnDestroy {
     };
   });
 
-  serverIP = '127.0.0.1';
-  serverPort = '7777';
-
   private telemetrySub: Subscription | null = null;
   private connectedSub: Subscription | null = null;
 
@@ -102,17 +99,6 @@ export class CustomComponent implements OnInit, OnDestroy {
 
   selectVessel(id: string): void {
     this.selectedVesselId = id;
-  }
-
-  connect(): void {
-    const port = parseInt(this.serverPort, 10);
-    if (!isNaN(port)) {
-      this.telemetryService.connect(this.serverIP, port);
-    }
-  }
-
-  disconnect(): void {
-    this.telemetryService.disconnect();
   }
 
   getVessel(id: string): Vessel {
