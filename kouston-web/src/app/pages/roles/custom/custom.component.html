@@ -1,0 +1,284 @@
+<div class="role-display">
+  <header>
+    <button class="home-btn" (click)="goHome()">Home</button>
+    <h1>Custom</h1>
+    <select class="display-selector" [(ngModel)]="currentDisplay">
+      @for (opt of displayOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+    <div class="connection-controls">
+      @if (!connected) {
+        <input type="text" [(ngModel)]="serverIP" placeholder="Server IP" class="input-field" />
+        <input type="text" [(ngModel)]="serverPort" placeholder="Port" class="input-field port" />
+        <button (click)="connect()" class="btn connect">Connect</button>
+      } @else {
+        <span class="server-info">{{ serverIP }}:{{ serverPort }}</span>
+        <button (click)="disconnect()" class="btn disconnect">Disconnect</button>
+      }
+      <div class="connection-status" [class.connected]="connected">
+        {{ connected ? 'CONNECTED' : 'DISCONNECTED' }}
+      </div>
+    </div>
+  </header>
+
+  <main>
+    @if (!connected) {
+      <div class="no-vessels">
+        <p>Not connected</p>
+        <p class="hint">Enter server IP and click Connect</p>
+      </div>
+    } @else if (vesselIds.length === 0) {
+      <div class="no-vessels">
+        <p>No active vessels</p>
+        <p class="hint">Connect from KSP to see telemetry</p>
+      </div>
+    } @else {
+      <!-- Ground Track -->
+      @if (currentDisplay === 'ground-track') {
+        <div class="display-view">
+          <div class="map-section">
+            <app-orbital-map [vessel]="selectedVessel"></app-orbital-map>
+          </div>
+          <aside class="telemetry-sidebar">
+            <div class="vessel-selector">
+              <h3>Vessels</h3>
+              @for (id of vesselIds; track id) {
+                <button class="vessel-tab" [class.active]="selectedVesselId === id" (click)="selectVessel(id)">
+                  {{ getVessel(id).name }}
+                </button>
+              }
+            </div>
+          </aside>
+        </div>
+      }
+
+      <!-- Orbital View -->
+      @if (currentDisplay === 'orbital') {
+        <div class="display-view">
+          <div class="orbit-section">
+            <app-orbital-view [vessel]="selectedVessel"></app-orbital-view>
+          </div>
+          <aside class="telemetry-sidebar">
+            <div class="vessel-selector">
+              <h3>Vessels</h3>
+              @for (id of vesselIds; track id) {
+                <button class="vessel-tab" [class.active]="selectedVesselId === id" (click)="selectVessel(id)">
+                  {{ getVessel(id).name }}
+                </button>
+              }
+            </div>
+            @if (selectedVessel) {
+              <div class="telemetry-panel">
+                <h3>Orbital Data</h3>
+                <div class="telemetry-group">
+                  <div class="telemetry-item">
+                    <span class="label">Apoapsis</span>
+                    <span class="value">{{ formatAltitude(selectedVessel.apoapsis) }}</span>
+                  </div>
+                  <div class="telemetry-item">
+                    <span class="label">Periapsis</span>
+                    <span class="value">{{ formatAltitude(selectedVessel.periapsis) }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          </aside>
+        </div>
+      }
+
+      <!-- EDL -->
+      @if (currentDisplay === 'edl') {
+        <div class="display-view">
+          <div class="lander-section">
+            <div class="lander-container">
+              <div class="vertical-speed">
+                <span class="label">V/S</span>
+                <span class="value" [class.negative]="selectedVessel && selectedVessel.verticalSpeed < 0">
+                  {{ selectedVessel ? formatVelocity(selectedVessel.verticalSpeed) : '--' }}
+                </span>
+              </div>
+              <div class="lander-wrapper">
+                <img
+                  [src]="selectedVessel && selectedVessel.throttle > 0 ? 'lander_fire.png' : 'lander.png'"
+                  alt="Lander"
+                  class="lander-image"
+                  [style.transform]="'rotate(' + getLanderRotation() + 'deg)'"
+                />
+              </div>
+              <div class="horizontal-speed">
+                <span class="label">H/S</span>
+                <span class="value">{{ selectedVessel ? formatVelocity(selectedVessel.horizontalSpeed) : '--' }}</span>
+              </div>
+            </div>
+            <div class="radar-altitude">
+              <span class="label">Radar Altitude</span>
+              <span class="value">{{ selectedVessel ? formatAltitude(selectedVessel.radarAltitude) : '--' }}</span>
+            </div>
+          </div>
+          <aside class="telemetry-sidebar">
+            <div class="vessel-selector">
+              <h3>Vessels</h3>
+              @for (id of vesselIds; track id) {
+                <button class="vessel-tab" [class.active]="selectedVesselId === id" (click)="selectVessel(id)">
+                  {{ getVessel(id).name }}
+                </button>
+              }
+            </div>
+          </aside>
+        </div>
+      }
+
+      <!-- Pod -->
+      @if (currentDisplay === 'pod') {
+        <div class="display-view">
+          <div class="pod-section">
+            <div class="pod-container">
+              <div class="vertical-speed">
+                <span class="label">V/S</span>
+                <span class="value" [class.negative]="selectedVessel && selectedVessel.verticalSpeed < 0">
+                  {{ selectedVessel ? formatVelocity(selectedVessel.verticalSpeed) : '--' }}
+                </span>
+              </div>
+              <div class="pod-wrapper">
+                <img src="pod.png" alt="Pod" class="pod-image" [style.transform]="'rotate(' + getLanderRotation() + 'deg)'" />
+              </div>
+              <div class="horizontal-speed">
+                <span class="label">H/S</span>
+                <span class="value">{{ selectedVessel ? formatVelocity(selectedVessel.horizontalSpeed) : '--' }}</span>
+              </div>
+            </div>
+            <div class="radar-altitude">
+              <span class="label">Radar Altitude</span>
+              <span class="value">{{ selectedVessel ? formatAltitude(selectedVessel.radarAltitude) : '--' }}</span>
+            </div>
+          </div>
+          <aside class="telemetry-sidebar">
+            <div class="vessel-selector">
+              <h3>Vessels</h3>
+              @for (id of vesselIds; track id) {
+                <button class="vessel-tab" [class.active]="selectedVesselId === id" (click)="selectVessel(id)">
+                  {{ getVessel(id).name }}
+                </button>
+              }
+            </div>
+          </aside>
+        </div>
+      }
+
+      <!-- Phase Angles -->
+      @if (currentDisplay === 'phase') {
+        <div class="phase-view">
+          <aside class="vessel-sidebar">
+            <div class="vessel-selector">
+              <h3>Vessels</h3>
+              @for (id of vesselIds; track id) {
+                <button class="vessel-tab" [class.active]="selectedVesselId === id" (click)="selectVessel(id)">
+                  {{ getVessel(id).name }}
+                </button>
+              }
+            </div>
+            @if (selectedVessel) {
+              <div class="vessel-info">
+                <h3>Spacecraft Position</h3>
+                <div class="info-item">
+                  <span class="label">Orbiting</span>
+                  <span class="value">{{ selectedVessel.bodyName }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">True Anomaly</span>
+                  <span class="value">{{ radToDeg(selectedVessel.trueAnomaly).toFixed(2) }}°</span>
+                </div>
+              </div>
+            }
+          </aside>
+          <div class="phase-content">
+            @if (selectedVessel) {
+              <div class="phase-header">
+                <h2>Phase Angles from {{ selectedVessel.name }}</h2>
+              </div>
+              <div class="phase-table">
+                <div class="table-header">
+                  <span class="col-body">Body</span>
+                  <span class="col-angle">Phase Angle</span>
+                  <span class="col-inclination">Rel. Inclination</span>
+                  <span class="col-sma">Semi-Major Axis</span>
+                </div>
+                @for (data of getPhaseAngles(); track data.name) {
+                  <div class="table-row">
+                    <span class="col-body"><span class="body-name">{{ data.name }}</span></span>
+                    <span class="col-angle" [class.positive]="data.phaseAngle > 0" [class.negative]="data.phaseAngle < 0">
+                      {{ data.phaseAngle > 0 ? '+' : '' }}{{ radToDeg(data.phaseAngle).toFixed(2) }}°
+                    </span>
+                    <span class="col-inclination" [class.positive]="data.inclinationChange > 0" [class.negative]="data.inclinationChange < 0">
+                      {{ data.inclinationChange > 0 ? '+' : '' }}{{ data.inclinationChange.toFixed(2) }}°
+                    </span>
+                    <span class="col-sma">{{ formatDistance(data.semiMajorAxis) }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Systems -->
+      @if (currentDisplay === 'systems') {
+        <div class="systems-view">
+          <aside class="vessel-sidebar">
+            <div class="vessel-selector">
+              <h3>Vessels</h3>
+              @for (id of vesselIds; track id) {
+                <button class="vessel-tab" [class.active]="selectedVesselId === id" (click)="selectVessel(id)">
+                  {{ getVessel(id).name }}
+                </button>
+              }
+            </div>
+          </aside>
+          <div class="systems-content">
+            @if (selectedVessel) {
+              <div class="systems-header">
+                <h2>{{ selectedVessel.name }} Resources</h2>
+              </div>
+              <div class="resource-list">
+                @for (summary of getResourceSummaries(); track summary.type) {
+                  <div class="resource-group">
+                    <div class="resource-summary" (click)="toggleExpand(summary.type)">
+                      <div class="resource-header">
+                        <span class="resource-icon" [style.background]="getResourceColor(summary.type)"></span>
+                        <span class="resource-name">{{ formatResourceName(summary.type) }}</span>
+                        <span class="expand-icon">{{ isExpanded(summary.type) ? '-' : '+' }}</span>
+                      </div>
+                      <div class="resource-totals">
+                        <span class="resource-amount">{{ formatAmount(summary.totalAmount, summary.type) }} / {{ formatAmount(summary.totalMax, summary.type) }}</span>
+                        <span class="resource-percentage">{{ summary.percentage.toFixed(1) }}%</span>
+                      </div>
+                      <div class="resource-bar">
+                        <div class="resource-bar-fill" [style.width.%]="summary.percentage" [style.background]="getBarColor(summary.percentage)"></div>
+                      </div>
+                    </div>
+                    @if (isExpanded(summary.type)) {
+                      <div class="resource-breakdown">
+                        @for (entry of summary.entries; track entry.partName + $index) {
+                          <div class="resource-entry">
+                            <span class="part-name">{{ entry.partName }}</span>
+                            <div class="entry-details">
+                              <span class="entry-amount">{{ formatAmount(entry.amount, entry.type) }} / {{ formatAmount(entry.maxAmount, entry.type) }}</span>
+                              <div class="entry-bar">
+                                <div class="entry-bar-fill" [style.width.%]="entry.percentage" [style.background]="getBarColor(entry.percentage)"></div>
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  </main>
+</div>

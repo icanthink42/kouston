@@ -4,11 +4,12 @@
   </header>
 
   <main>
-    <div class="screen-grid">
-      @for (screen of screens; track screen.path) {
-        <button class="screen-card" (click)="navigateTo(screen.path)">
-          <h2>{{ screen.name }}</h2>
-          <p>{{ screen.description }}</p>
+    <h2 class="section-title">Select Role</h2>
+    <div class="role-grid">
+      @for (role of roles; track role.path) {
+        <button class="role-card" (click)="navigateTo(role.path)">
+          <h2>{{ role.name }}</h2>
+          <p>{{ role.description }}</p>
         </button>
       }
     </div>

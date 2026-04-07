@@ -10,13 +10,11 @@ import { Router } from '@angular/router';
   styleUrl: './home.component.scss'
 })
 export class HomeComponent {
-  screens = [
-    { path: '/ground-track', name: 'Ground Track', description: 'Map view with vessel ground track' },
-    { path: '/orbital', name: 'Orbital View', description: 'Orbital mechanics visualization' },
-    { path: '/edl', name: 'EDL', description: 'Entry, descent & landing display' },
-    { path: '/pod', name: 'Pod', description: 'Pod reentry display' },
-    { path: '/phase', name: 'Phase Angles', description: 'Phase angles to system bodies' },
-    { path: '/systems', name: 'Systems', description: 'Vessel resource management' },
+  roles = [
+    { path: '/flight-director', name: 'Flight Director', description: 'Orbital view when in orbit, Pod reentry when suborbital' },
+    { path: '/gnc', name: 'GNC', description: 'Guidance, Navigation & Control - Phase angles display' },
+    { path: '/eecom', name: 'EECOM', description: 'Electrical, Environmental & Consumables - Systems display' },
+    { path: '/custom', name: 'Custom', description: 'Manually select any display' },
   ];
 
   constructor(private router: Router) {}
