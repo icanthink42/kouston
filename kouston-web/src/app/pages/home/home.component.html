@@ -1,0 +1,16 @@
+<div class="home">
+  <header>
+    <h1>Kouston Mission Control</h1>
+  </header>
+
+  <main>
+    <div class="screen-grid">
+      @for (screen of screens; track screen.path) {
+        <button class="screen-card" (click)="navigateTo(screen.path)">
+          <h2>{{ screen.name }}</h2>
+          <p>{{ screen.description }}</p>
+        </button>
+      }
+    </div>
+  </main>
+</div>

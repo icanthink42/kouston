@@ -77,7 +77,6 @@ export class MainDisplayComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.telemetrySub?.unsubscribe();
     this.connectedSub?.unsubscribe();
-    this.telemetryService.disconnect();
   }
 
   getVessel(id: string): Vessel {
