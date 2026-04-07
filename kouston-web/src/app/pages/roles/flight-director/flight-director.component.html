@@ -156,48 +156,29 @@
 
         <!-- EDL Lander Display (airless body) -->
         @if (currentDisplay === 'edl') {
-          <div class="edl-section">
-            <div class="edl-container">
-              <div class="edl-speeds">
-                <div class="speed-item">
-                  <span class="label">V/S</span>
-                  <span class="value" [class.negative]="selectedVessel && selectedVessel.verticalSpeed < 0">
-                    {{ selectedVessel ? fmt.velocity(selectedVessel.verticalSpeed) : '--' }}
-                  </span>
-                </div>
-                <div class="speed-item">
-                  <span class="label">H/S</span>
-                  <span class="value">
-                    {{ selectedVessel ? fmt.velocity(selectedVessel.horizontalSpeed) : '--' }}
-                  </span>
-                </div>
+          <div class="lander-section">
+            <div class="lander-container">
+              <div class="vertical-speed">
+                <span class="label">V/S</span>
+                <span class="value" [class.negative]="selectedVessel && selectedVessel.verticalSpeed < 0">
+                  {{ selectedVessel ? fmt.velocity(selectedVessel.verticalSpeed) : '--' }}
+                </span>
               </div>
 
-              <div class="lander-display">
-                <svg viewBox="0 0 200 300" class="lander-svg" [style.transform]="'rotate(' + getLanderRotation() + 'deg)'">
-                  <rect x="70" y="100" width="60" height="80" fill="#888" stroke="#aaa" stroke-width="2"/>
-                  <line x1="70" y1="180" x2="40" y2="220" stroke="#666" stroke-width="4"/>
-                  <line x1="130" y1="180" x2="160" y2="220" stroke="#666" stroke-width="4"/>
-                  <ellipse cx="40" cy="225" rx="12" ry="5" fill="#555"/>
-                  <ellipse cx="160" cy="225" rx="12" ry="5" fill="#555"/>
-                  <path d="M 85 180 L 75 210 L 125 210 L 115 180 Z" fill="#555" stroke="#666" stroke-width="1"/>
-                  @if (selectedVessel && selectedVessel.throttle > 0) {
-                    <ellipse cx="100" cy="230" rx="15" ry="25" fill="#ff4400" [attr.opacity]="0.5 + selectedVessel.throttle * 0.5"/>
-                    <ellipse cx="100" cy="225" rx="10" ry="15" fill="#ffaa00" [attr.opacity]="0.7 + selectedVessel.throttle * 0.3"/>
-                    <ellipse cx="100" cy="220" rx="5" ry="8" fill="#ffff88"/>
-                  }
-                  <rect x="60" y="110" width="8" height="15" fill="#444"/>
-                  <rect x="132" y="110" width="8" height="15" fill="#444"/>
-                  <ellipse cx="100" cy="120" rx="15" ry="12" fill="#224" stroke="#4af" stroke-width="2"/>
-                </svg>
+              <div class="lander-wrapper">
+                <img
+                  [src]="selectedVessel && selectedVessel.throttle > 0 ? 'lander_fire.png' : 'lander.png'"
+                  alt="Lander"
+                  class="lander-image"
+                  [style.transform]="'rotate(' + getLanderRotation() + 'deg)'"
+                />
               </div>
 
-              <div class="throttle-gauge">
-                <span class="label">THR</span>
-                <div class="gauge-bar">
-                  <div class="gauge-fill" [style.height.%]="selectedVessel ? selectedVessel.throttle * 100 : 0"></div>
-                </div>
-                <span class="value">{{ selectedVessel ? (selectedVessel.throttle * 100).toFixed(0) : '--' }}%</span>
+              <div class="horizontal-speed">
+                <span class="label">H/S</span>
+                <span class="value">
+                  {{ selectedVessel ? fmt.velocity(selectedVessel.horizontalSpeed) : '--' }}
+                </span>
               </div>
             </div>
 
