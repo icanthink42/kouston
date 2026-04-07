@@ -24,6 +24,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   isLocal = false;
   localIP = '127.0.0.1';
   localPort = '7777';
+  useSSL = false;
 
   private connectedSub: Subscription | null = null;
 
@@ -50,7 +51,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   connectLocal(): void {
     const port = parseInt(this.localPort, 10);
     if (!isNaN(port)) {
-      this.telemetryService.connectLocal(this.localIP, port);
+      this.telemetryService.connectLocal(this.localIP, port, this.useSSL);
     }
   }
 

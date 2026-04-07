@@ -33,17 +33,17 @@ export class TelemetryService {
     this.connect(host, 443);
   }
 
-  connectLocal(ip: string, port: number = 7777): void {
+  connectLocal(ip: string, port: number = 7777, secure: boolean = false): void {
     this.teamSubject.next(null);
-    this.connect(ip, port);
+    this.connect(ip, port, secure);
   }
 
-  connect(host: string = 'localhost', port: number = 7777): void {
+  connect(host: string = 'localhost', port: number = 7777, secure?: boolean): void {
     if (this.socket) {
       this.disconnect();
     }
 
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const protocol = secure ?? (window.location.protocol === 'https:') ? 'wss:' : 'ws:';
     const portSuffix = (protocol === 'wss:' && port === 443) || (protocol === 'ws:' && port === 80) ? '' : `:${port}`;
     const url = `${protocol}//${host}${portSuffix}/web`;
     this.socket = new WebSocket(url);

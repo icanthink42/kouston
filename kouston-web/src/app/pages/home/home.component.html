@@ -20,6 +20,10 @@
             placeholder="Port"
             class="input-field port"
           />
+          <label class="ssl-toggle">
+            <input type="checkbox" [(ngModel)]="useSSL" />
+            <span>SSL (wss://)</span>
+          </label>
           <button (click)="connectLocal()" class="btn connect">Connect</button>
         </div>
       } @else {

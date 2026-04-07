@@ -6,9 +6,10 @@ namespace Kouston.UI
     public class ConnectWindow
     {
         private bool showWindow = false;
-        private Rect windowRect = new Rect(100, 100, 300, 180);
+        private Rect windowRect = new Rect(100, 100, 300, 210);
         private string serverIP = "127.0.0.1";
         private string serverPort = "7777";
+        private bool useSSL = false;
 
         private Client client;
 
@@ -50,6 +51,10 @@ namespace Kouston.UI
             GUILayout.Label("Port:");
             serverPort = GUILayout.TextField(serverPort);
 
+            GUILayout.Space(5);
+
+            useSSL = GUILayout.Toggle(useSSL, "Use SSL (wss://)");
+
             GUILayout.Space(10);
 
             if (client.IsConnected)
@@ -65,7 +70,7 @@ namespace Kouston.UI
                 {
                     if (int.TryParse(serverPort, out int port))
                     {
-                        client.Connect(serverIP, port);
+                        client.Connect(serverIP, port, useSSL);
                     }
                     else
                     {

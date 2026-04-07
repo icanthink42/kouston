@@ -14,7 +14,7 @@ namespace Kouston.Network
         private ClientWebSocket socket;
         private CancellationTokenSource cts;
 
-        public async void Connect(string ip, int port)
+        public async void Connect(string ip, int port, bool useSSL = false)
         {
             if (IsConnected)
             {
@@ -27,7 +27,8 @@ namespace Kouston.Network
                 socket = new ClientWebSocket();
                 cts = new CancellationTokenSource();
 
-                var uri = new Uri($"ws://{ip}:{port}/ksp");
+                string protocol = useSSL ? "wss" : "ws";
+                var uri = new Uri($"{protocol}://{ip}:{port}/ksp");
                 Debug.Log($"[Kouston] Connecting to {uri}...");
 
                 await socket.ConnectAsync(uri, cts.Token);
