@@ -79,7 +79,12 @@ func handleWebClient(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func handleHealth(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
 func main() {
+	http.HandleFunc("/health", handleHealth)
 	http.HandleFunc("/ksp", handleKSPClient)
 	http.HandleFunc("/web", handleWebClient)
 
