@@ -4,15 +4,15 @@
   gap: 1rem;
   width: 250px;
   padding: 1rem;
-  background: #111;
-  border-left: 1px solid #333;
+  background: var(--header-bg);
+  border-left: 1px solid var(--border-color);
 }
 
 .vessel-selector {
   h3 {
     margin: 0 0 0.75rem 0;
     font-size: 0.75rem;
-    color: #666;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 1px;
   }
@@ -23,23 +23,23 @@
   width: 100%;
   padding: 0.5rem 0.75rem;
   margin-bottom: 0.25rem;
-  background: #1a1a24;
-  border: 1px solid #333;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #888;
+  color: var(--text-secondary);
   font-family: inherit;
   font-size: 0.875rem;
   text-align: left;
   cursor: pointer;
 
   &:hover {
-    background: #222;
-    color: #fff;
+    background: var(--bg-hover);
+    color: var(--text-primary);
   }
 
   &.active {
-    background: #2a2a3a;
-    border-color: #4a9eff;
-    color: #4a9eff;
+    background: var(--bg-hover);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
   }
 }

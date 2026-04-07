@@ -3,14 +3,14 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: #111;
-  border-bottom: 1px solid #333;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
   gap: 1rem;
 
   h1 {
     margin: 0;
     font-size: 1.5rem;
-    color: #4a9eff;
+    color: var(--accent-color);
     text-transform: uppercase;
     letter-spacing: 2px;
     flex: 1;
@@ -19,10 +19,10 @@ header {
 
 .home-btn {
   padding: 0.5rem 1rem;
-  background: #1a1a24;
-  border: 1px solid #333;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #4a9eff;
+  color: var(--accent-color);
   font-family: inherit;
   font-size: 0.875rem;
   cursor: pointer;
@@ -30,34 +30,34 @@ header {
   letter-spacing: 1px;
 
   &:hover {
-    background: #2a2a34;
-    border-color: #4a9eff;
+    background: var(--bg-hover);
+    border-color: var(--accent-color);
   }
 }
 
 .page-dropdown {
   padding: 0.5rem 1rem;
-  background: #1a1a24;
-  border: 1px solid #333;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #fff;
+  color: var(--text-primary);
   font-family: inherit;
   font-size: 0.875rem;
   cursor: pointer;
 
   &:focus {
     outline: none;
-    border-color: #4a9eff;
+    border-color: var(--accent-color);
   }
 
   option {
-    background: #1a1a24;
-    color: #fff;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
   }
 }
 
 .subtitle {
-  color: #888;
+  color: var(--text-secondary);
   font-size: 0.875rem;
   text-transform: uppercase;
 }

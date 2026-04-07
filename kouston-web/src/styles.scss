@@ -1,3 +1,41 @@
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #151520;
+  --bg-hover: #1a1a2a;
+  --border-color: #333;
+  --text-primary: #fff;
+  --text-secondary: #888;
+  --text-muted: #666;
+  --accent-color: #4a9eff;
+  --accent-red: #ff4a4a;
+  --accent-green: #00ff00;
+  --accent-cyan: #00ffff;
+  --accent-orange: #ff6600;
+  --accent-yellow: #ffcc00;
+  --accent-magenta: #ff66ff;
+  --header-bg: #111;
+  --card-bg: #151520;
+}
+
+[data-theme="light"] {
+  --bg-primary: #f5f5f7;
+  --bg-secondary: #fff;
+  --bg-hover: #e8e8ec;
+  --border-color: #ccc;
+  --text-primary: #1a1a1a;
+  --text-secondary: #555;
+  --text-muted: #888;
+  --accent-color: #0066cc;
+  --accent-red: #cc3333;
+  --accent-green: #008800;
+  --accent-cyan: #008888;
+  --accent-orange: #cc5500;
+  --accent-yellow: #997700;
+  --accent-magenta: #aa44aa;
+  --header-bg: #e0e0e5;
+  --card-bg: #fff;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -6,5 +44,7 @@
 
 html, body {
   height: 100%;
-  background: #0a0a0f;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background 0.2s ease, color 0.2s ease;
 }

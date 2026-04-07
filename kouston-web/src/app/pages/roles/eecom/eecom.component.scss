@@ -1,7 +1,7 @@
 .role-display {
   min-height: 100vh;
-  background: #0a0a0f;
-  color: #fff;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   font-family: 'Courier New', monospace;
 }
 
@@ -10,14 +10,14 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background: #111;
-  border-bottom: 1px solid #333;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
   gap: 1rem;
 
   h1 {
     margin: 0;
     font-size: 1.5rem;
-    color: #4a9eff;
+    color: var(--accent-color);
     text-transform: uppercase;
     letter-spacing: 2px;
   }
@@ -25,17 +25,17 @@ header {
 
 .home-btn {
   padding: 0.5rem 1rem;
-  background: #1a1a24;
-  border: 1px solid #333;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #fff;
+  color: var(--text-primary);
   font-family: inherit;
   font-size: 0.875rem;
   cursor: pointer;
 
   &:hover {
-    background: #2a2a34;
-    border-color: #4a9eff;
+    background: var(--bg-hover);
+    border-color: var(--accent-color);
   }
 }
 
@@ -150,8 +150,8 @@ main {
 }
 
 .vessel-sidebar {
-  background: #151520;
-  border: 1px solid #333;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1rem;
   overflow-y: auto;
@@ -159,7 +159,7 @@ main {
   h3 {
     margin: 0 0 0.75rem 0;
     font-size: 0.875rem;
-    color: #4a9eff;
+    color: var(--accent-color);
     text-transform: uppercase;
     letter-spacing: 1px;
   }
@@ -168,7 +168,7 @@ main {
 .vessel-selector {
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .vessel-tab {
@@ -176,30 +176,30 @@ main {
   width: 100%;
   padding: 0.5rem 0.75rem;
   margin-top: 0.25rem;
-  background: #1a1a24;
-  border: 1px solid #333;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  color: #888;
+  color: var(--text-secondary);
   font-family: inherit;
   font-size: 0.875rem;
   text-align: left;
   cursor: pointer;
 
   &:hover {
-    background: #222230;
-    color: #fff;
+    background: var(--bg-hover);
+    color: var(--text-primary);
   }
 
   &.active {
-    background: #2a3a4a;
-    border-color: #4a9eff;
-    color: #fff;
+    background: var(--bg-hover);
+    border-color: var(--accent-color);
+    color: var(--text-primary);
   }
 }
 
 .systems-content {
-  background: #151520;
-  border: 1px solid #333;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 1.5rem;
   overflow-y: auto;

@@ -13,6 +13,8 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
   @Input() vessel: Vessel | null = null;
   @ViewChild('orbitCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
+  outOfPlaneCount = 0;
+
   private ctx: CanvasRenderingContext2D | null = null;
   private zoomLevel = 1;
 
@@ -469,12 +471,14 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
 
   private getVisibleBodies(): { name: string; ta: number; rotation: number; sma: number; radius: number }[] {
     if (!this.vessel || !this.vessel.bodyNames || this.vessel.bodyNames.length === 0) {
+      this.outOfPlaneCount = 0;
       return [];
     }
 
     const thresholdDeg = 5;
     const vesselInclination = this.vessel.inclination || 0;
     const visibleBodies: { name: string; ta: number; rotation: number; sma: number; radius: number }[] = [];
+    let outOfPlane = 0;
 
     for (let i = 0; i < this.vessel.bodyNames.length; i++) {
       const bodyInclination = this.vessel.bodyInclinations?.[i] || 0;
@@ -491,9 +495,12 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges {
           sma: this.vessel.bodySemiMajorAxes?.[i] || 0,
           radius: this.vessel.bodyRadii?.[i] || 0
         });
+      } else {
+        outOfPlane++;
       }
     }
 
+    this.outOfPlaneCount = outOfPlane;
     return visibleBodies;
   }
 
