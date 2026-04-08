@@ -1,12 +1,17 @@
 .role-display {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: 'Courier New', monospace;
 }
 
 main {
+  flex: 1;
   padding: 2rem;
+  overflow: hidden;
 }
 
 .no-vessels {
@@ -29,7 +34,7 @@ main {
   display: grid;
   grid-template-columns: 1fr 320px;
   gap: 1.5rem;
-  height: calc(100vh - 100px);
+  height: 100%;
 }
 
 .view-section {
