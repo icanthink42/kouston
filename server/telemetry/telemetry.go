@@ -27,6 +27,8 @@ type Vessel struct {
 
 	// EDL data
 	Pitch           float64 `json:"pitch"`
+	Heading         float64 `json:"heading"`
+	Prograde        float64 `json:"prograde"`
 	VerticalSpeed   float64 `json:"verticalSpeed"`
 	HorizontalSpeed float64 `json:"horizontalSpeed"`
 	RadarAltitude   float64 `json:"radarAltitude"`

@@ -30,6 +30,11 @@ export class AscentViewComponent {
     return Math.round(this.vessel.heading || 0);
   }
 
+  getPrograde(): number {
+    if (!this.vessel) return 0;
+    return Math.round(this.vessel.prograde || 0);
+  }
+
   getAscentScale(): { planetRadius: number; viewRadius: number; centerY: number } {
     if (!this.vessel) {
       return { planetRadius: 600000, viewRadius: 2000, centerY: 800 };

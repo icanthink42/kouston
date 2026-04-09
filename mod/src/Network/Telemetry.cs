@@ -30,6 +30,8 @@ namespace Kouston.Network
 
         // EDL data
         public double pitch;           // Pitch angle relative to horizon (degrees)
+        public double heading;         // Attitude compass heading (degrees, 0 = north)
+        public double prograde;        // Velocity compass heading (degrees, 0 = north)
         public double verticalSpeed;   // Vertical velocity (m/s, negative = descending)
         public double horizontalSpeed; // Horizontal velocity (m/s)
         public double radarAltitude;   // Height above terrain (m)
@@ -84,6 +86,8 @@ namespace Kouston.Network
                 // EDL data
                 pitch = vessel.transform != null ?
                     Sanitize(90 - Vector3d.Angle(vessel.transform.up, (vessel.CoMD - vessel.mainBody.position).normalized)) : 0,
+                heading = vessel.transform != null ? Sanitize(GetHeading(vessel)) : 0,
+                prograde = Sanitize(GetPrograde(vessel)),
                 verticalSpeed = Sanitize(vessel.verticalSpeed),
                 horizontalSpeed = Sanitize(vessel.horizontalSrfSpeed),
                 radarAltitude = Sanitize(vessel.radarAltitude),
@@ -257,6 +261,42 @@ namespace Kouston.Network
                 }
             }
             return total;
+        }
+
+        private static double GetHeading(Vessel vessel)
+        {
+            Vector3d up = (vessel.CoMD - vessel.mainBody.position).normalized;
+            // North is the component of celestial north that lies in the local horizontal plane
+            Vector3d north = Vector3d.Exclude(up, vessel.mainBody.transform.up).normalized;
+            Vector3d east = Vector3d.Cross(up, north).normalized;
+            Vector3d forward = vessel.transform.up;
+
+            // Project forward onto the horizontal plane
+            Vector3d horizontalForward = Vector3d.Exclude(up, forward).normalized;
+
+            // Calculate heading (0 = north, 90 = east)
+            double headingRad = Math.Atan2(Vector3d.Dot(horizontalForward, east), Vector3d.Dot(horizontalForward, north));
+            double headingDeg = headingRad * 180.0 / Math.PI;
+            if (headingDeg < 0) headingDeg += 360;
+            return headingDeg;
+        }
+
+        private static double GetPrograde(Vessel vessel)
+        {
+            if (vessel.srf_velocity.magnitude < 0.1) return 0;
+
+            Vector3d up = (vessel.CoMD - vessel.mainBody.position).normalized;
+            Vector3d north = Vector3d.Exclude(up, vessel.mainBody.transform.up).normalized;
+            Vector3d east = Vector3d.Cross(up, north).normalized;
+
+            // Project velocity onto the horizontal plane
+            Vector3d horizontalVelocity = Vector3d.Exclude(up, vessel.srf_velocity).normalized;
+
+            // Calculate prograde heading (0 = north, 90 = east)
+            double headingRad = Math.Atan2(Vector3d.Dot(horizontalVelocity, east), Vector3d.Dot(horizontalVelocity, north));
+            double headingDeg = headingRad * 180.0 / Math.PI;
+            if (headingDeg < 0) headingDeg += 360;
+            return headingDeg;
         }
 
         // Sanitize double values to avoid JSON serialization issues with Infinity/NaN

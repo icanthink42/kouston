@@ -36,6 +36,11 @@ export class EdlViewComponent {
     return Math.round(this.vessel.heading || 0);
   }
 
+  getPrograde(): number {
+    if (!this.vessel) return 0;
+    return Math.round(this.vessel.prograde || 0);
+  }
+
   getImage(): string {
     if (this.mode === 'pod') {
       return 'pod.png';

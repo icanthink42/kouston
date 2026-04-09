@@ -1,4 +1,47 @@
 <div class="edl-view">
+  <div class="compass-panel">
+    <div class="compass">
+      <svg viewBox="0 0 120 120" class="compass-svg">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border-color)" stroke-width="2"/>
+        <circle cx="60" cy="60" r="45" fill="none" stroke="var(--bg-secondary)" stroke-width="1"/>
+        <text x="60" y="7" text-anchor="middle" fill="var(--accent-color)" font-size="9">N</text>
+        <text x="115" y="62" text-anchor="middle" fill="var(--text-muted)" font-size="9">E</text>
+        <text x="60" y="118" text-anchor="middle" fill="var(--text-muted)" font-size="9">S</text>
+        <text x="5" y="62" text-anchor="middle" fill="var(--text-muted)" font-size="9">W</text>
+        @for (tick of compassTicks; track $index) {
+          <line
+            [attr.x1]="tick.x1"
+            [attr.y1]="tick.y1"
+            [attr.x2]="tick.x2"
+            [attr.y2]="tick.y2"
+            stroke="var(--text-muted)" stroke-width="1"/>
+        }
+        <!-- Prograde (velocity direction) - blue -->
+        <polygon
+          points="60,20 56,30 64,30"
+          fill="#4a9eff"
+          [attr.transform]="'rotate(' + getPrograde() + ' 60 60)'"/>
+        <!-- Heading (nose direction) - orange -->
+        <polygon
+          points="60,22 57,32 63,32"
+          fill="none"
+          stroke="#ff6644"
+          stroke-width="1.5"
+          [attr.transform]="'rotate(' + getHeading() + ' 60 60)'"/>
+      </svg>
+    </div>
+    <div class="compass-values">
+      <div class="compass-value">
+        <span class="label" style="color: #4a9eff">PRO</span>
+        <span class="value">{{ getPrograde() }}°</span>
+      </div>
+      <div class="compass-value">
+        <span class="label" style="color: #ff6644">HDG</span>
+        <span class="value">{{ getHeading() }}°</span>
+      </div>
+    </div>
+  </div>
+
   <div class="edl-container">
     <div class="vertical-speed">
       <span class="label">V/S</span>
@@ -30,35 +73,6 @@
       <span class="value">
         {{ vessel ? fmt.altitude(vessel.radarAltitude) : '--' }}
       </span>
-    </div>
-
-    <div class="compass-panel">
-      <div class="compass">
-        <svg viewBox="0 0 120 120" class="compass-svg">
-          <circle cx="60" cy="60" r="50" fill="none" stroke="var(--border-color)" stroke-width="2"/>
-          <circle cx="60" cy="60" r="45" fill="none" stroke="var(--bg-secondary)" stroke-width="1"/>
-          <text x="60" y="18" text-anchor="middle" fill="var(--accent-color)" font-size="12">N</text>
-          <text x="102" y="64" text-anchor="middle" fill="var(--text-muted)" font-size="10">E</text>
-          <text x="60" y="108" text-anchor="middle" fill="var(--text-muted)" font-size="10">S</text>
-          <text x="18" y="64" text-anchor="middle" fill="var(--text-muted)" font-size="10">W</text>
-          @for (tick of compassTicks; track $index) {
-            <line
-              [attr.x1]="tick.x1"
-              [attr.y1]="tick.y1"
-              [attr.x2]="tick.x2"
-              [attr.y2]="tick.y2"
-              stroke="var(--text-muted)" stroke-width="1"/>
-          }
-          <polygon
-            points="60,20 55,35 65,35"
-            fill="#ff6644"
-            [attr.transform]="'rotate(' + getHeading() + ' 60 60)'"/>
-        </svg>
-      </div>
-      <div class="compass-value">
-        <span class="label">HDG</span>
-        <span class="value">{{ getHeading() }}°</span>
-      </div>
     </div>
   </div>
 </div>
