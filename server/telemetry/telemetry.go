@@ -36,11 +36,13 @@ type Vessel struct {
 
 	// System bodies (flattened arrays)
 	BodyNames           []string  `json:"bodyNames"`
+	BodyParents         []string  `json:"bodyParents"`
 	BodyTrueAnomalies   []float64 `json:"bodyTrueAnomalies"`
 	BodyArgsOfPeriapsis []float64 `json:"bodyArgsOfPeriapsis"`
 	BodyLANs            []float64 `json:"bodyLANs"`
 	BodyInclinations    []float64 `json:"bodyInclinations"`
 	BodySemiMajorAxes   []float64 `json:"bodySemiMajorAxes"`
+	BodyEccentricities  []float64 `json:"bodyEccentricities"`
 	BodyRadii           []float64 `json:"bodyRadii"`
 
 	// Resource breakdown

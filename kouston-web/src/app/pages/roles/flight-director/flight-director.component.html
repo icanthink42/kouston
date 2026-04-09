@@ -73,6 +73,42 @@
                 </div>
               </div>
 
+              <div class="telemetry-group">
+                <div class="telemetry-item">
+                  <span class="label">Inclination</span>
+                  <span class="value">{{ selectedVessel.inclination.toFixed(2) }}°</span>
+                </div>
+
+                <div class="telemetry-item">
+                  <span class="label">Eccentricity</span>
+                  <span class="value">{{ selectedVessel.eccentricity.toFixed(4) }}</span>
+                </div>
+              </div>
+
+              <div class="telemetry-group">
+                <div class="telemetry-item">
+                  <span class="label">LAN</span>
+                  <span class="value">{{ selectedVessel.lan.toFixed(2) }}°</span>
+                </div>
+
+                <div class="telemetry-item">
+                  <span class="label">Arg of Pe</span>
+                  <span class="value">{{ selectedVessel.argumentOfPeriapsis.toFixed(2) }}°</span>
+                </div>
+              </div>
+
+              <div class="telemetry-group">
+                <div class="telemetry-item">
+                  <span class="label">True Anomaly</span>
+                  <span class="value">{{ (selectedVessel.trueAnomaly * 180 / 3.14159).toFixed(1) }}°</span>
+                </div>
+
+                <div class="telemetry-item">
+                  <span class="label">Period</span>
+                  <span class="value">{{ fmt.period(selectedVessel.period) }}</span>
+                </div>
+              </div>
+
               @if (currentDisplay === 'pod' || currentDisplay === 'edl') {
                 <div class="telemetry-group">
                   <div class="telemetry-item">

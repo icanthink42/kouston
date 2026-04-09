@@ -39,11 +39,13 @@ namespace Kouston.Network
 
         // System bodies (flattened arrays for Unity JsonUtility compatibility)
         public string[] bodyNames = new string[0];
+        public string[] bodyParents = new string[0];  // Parent body name (empty string for Sun's children)
         public double[] bodyTrueAnomalies = new double[0];
         public double[] bodyArgsOfPeriapsis = new double[0];
         public double[] bodyLANs = new double[0];
         public double[] bodyInclinations = new double[0];
         public double[] bodySemiMajorAxes = new double[0];
+        public double[] bodyEccentricities = new double[0];
         public double[] bodyRadii = new double[0];
 
         // Resource breakdown (flattened arrays)
@@ -95,11 +97,13 @@ namespace Kouston.Network
 
                 // System bodies
                 bodyNames = GetBodyNames(vessel.mainBody),
+                bodyParents = GetBodyParents(vessel.mainBody),
                 bodyTrueAnomalies = GetBodyTrueAnomalies(vessel.mainBody),
                 bodyArgsOfPeriapsis = GetBodyArgsOfPeriapsis(vessel.mainBody),
                 bodyLANs = GetBodyLANs(vessel.mainBody),
                 bodyInclinations = GetBodyInclinations(vessel.mainBody),
                 bodySemiMajorAxes = GetBodySemiMajorAxes(vessel.mainBody),
+                bodyEccentricities = GetBodyEccentricities(vessel.mainBody),
                 bodyRadii = GetBodyRadii(vessel.mainBody),
 
                 // Resources
@@ -166,22 +170,43 @@ namespace Kouston.Network
             return maxAmounts.ToArray();
         }
 
-        private static List<CelestialBody> GetOrbitingBodies(CelestialBody mainBody)
+        private static CelestialBody GetSun(CelestialBody body)
+        {
+            if (body == null) return null;
+            while (body.referenceBody != null && body.referenceBody != body)
+            {
+                body = body.referenceBody;
+            }
+            return body;
+        }
+
+        private static List<CelestialBody> GetAllBodies(CelestialBody root)
         {
             var result = new List<CelestialBody>();
             try
             {
-                if (mainBody?.orbitingBodies != null)
+                if (root?.orbitingBodies != null)
                 {
-                    foreach (var body in mainBody.orbitingBodies)
+                    foreach (var body in root.orbitingBodies)
                     {
                         if (body != null)
+                        {
                             result.Add(body);
+                            // Recursively add moons
+                            result.AddRange(GetAllBodies(body));
+                        }
                     }
                 }
             }
             catch { }
             return result;
+        }
+
+        private static List<CelestialBody> GetOrbitingBodies(CelestialBody mainBody)
+        {
+            // Get all bodies in the solar system from the Sun
+            var sun = GetSun(mainBody);
+            return GetAllBodies(sun);
         }
 
         private static string[] GetBodyNames(CelestialBody mainBody)
@@ -191,6 +216,20 @@ namespace Kouston.Network
             for (int i = 0; i < bodies.Count; i++)
                 names[i] = bodies[i].bodyName ?? "Unknown";
             return names;
+        }
+
+        private static string[] GetBodyParents(CelestialBody mainBody)
+        {
+            var bodies = GetOrbitingBodies(mainBody);
+            var sun = GetSun(mainBody);
+            var parents = new string[bodies.Count];
+            for (int i = 0; i < bodies.Count; i++)
+            {
+                var parent = bodies[i].referenceBody;
+                // If parent is the Sun, use empty string; otherwise use parent's name
+                parents[i] = (parent == null || parent == sun) ? "" : (parent.bodyName ?? "");
+            }
+            return parents;
         }
 
         private static double[] GetBodyTrueAnomalies(CelestialBody mainBody)
@@ -235,6 +274,15 @@ namespace Kouston.Network
             var values = new double[bodies.Count];
             for (int i = 0; i < bodies.Count; i++)
                 values[i] = Sanitize(bodies[i].orbit?.semiMajorAxis ?? 0);
+            return values;
+        }
+
+        private static double[] GetBodyEccentricities(CelestialBody mainBody)
+        {
+            var bodies = GetOrbitingBodies(mainBody);
+            var values = new double[bodies.Count];
+            for (int i = 0; i < bodies.Count; i++)
+                values[i] = Sanitize(bodies[i].orbit?.eccentricity ?? 0);
             return values;
         }
 

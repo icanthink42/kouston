@@ -20,6 +20,24 @@ export class FormatService {
     return `${ms.toFixed(1)} m/s`;
   }
 
+  period(seconds: number): string {
+    if (seconds < 0) return 'N/A';
+    if (seconds < 60) return `${seconds.toFixed(1)}s`;
+    if (seconds < 3600) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}m ${secs}s`;
+    }
+    if (seconds < 86400) {
+      const hours = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      return `${hours}h ${mins}m`;
+    }
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    return `${days}d ${hours}h`;
+  }
+
   distance(meters: number): string {
     if (meters >= 1e12) {
       return `${(meters / 1e12).toFixed(2)} Tm`;

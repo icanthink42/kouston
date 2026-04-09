@@ -32,11 +32,13 @@ export interface Vessel {
 
   // System bodies (flattened arrays)
   bodyNames: string[];
+  bodyParents: string[];  // Parent body name (empty string = orbits Sun)
   bodyTrueAnomalies: number[];
   bodyArgsOfPeriapsis: number[];
   bodyLANs: number[];
   bodyInclinations: number[];
   bodySemiMajorAxes: number[];
+  bodyEccentricities: number[];
   bodyRadii: number[];
 
   // Resource breakdown

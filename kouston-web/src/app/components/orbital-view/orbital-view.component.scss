@@ -11,15 +11,31 @@
   }
 }
 
-.out-of-plane-notice {
+.orbital-elements {
   position: absolute;
-  bottom: 10px;
+  top: 10px;
   right: 10px;
-  background: rgba(255, 102, 255, 0.2);
-  border: 1px solid var(--accent-magenta);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
-  padding: 6px 12px;
-  color: var(--accent-magenta);
-  font-size: 12px;
+  padding: 8px 12px;
   font-family: 'Courier New', monospace;
+  font-size: 11px;
+  min-width: 140px;
+
+  .element {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 0;
+
+    .label {
+      color: var(--text-muted);
+    }
+
+    .value {
+      color: var(--accent-color);
+      font-weight: bold;
+    }
+  }
 }
