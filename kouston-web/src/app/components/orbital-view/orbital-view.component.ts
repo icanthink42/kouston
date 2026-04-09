@@ -32,6 +32,7 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges, OnDestroy
   private ctx: CanvasRenderingContext2D | null = null;
   private zoomLevel = 1;
   private resizeObserver: ResizeObserver | null = null;
+  private drawPending = false;
 
   ngAfterViewInit(): void {
     const canvas = this.canvasRef.nativeElement;
@@ -68,7 +69,16 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges, OnDestroy
     event.preventDefault();
     const zoomFactor = event.deltaY > 0 ? 0.85 : 1.18;
     this.zoomLevel = Math.max(0.00001, Math.min(1000, this.zoomLevel * zoomFactor));
-    this.draw();
+    this.scheduleDraw();
+  }
+
+  private scheduleDraw(): void {
+    if (this.drawPending) return;
+    this.drawPending = true;
+    requestAnimationFrame(() => {
+      this.drawPending = false;
+      this.draw();
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -274,15 +284,17 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges, OnDestroy
   private drawBodies(bodies: Map<string, BodyData>, offsetX: number, offsetY: number, scale: number, width: number, height: number): void {
     if (!this.ctx) return;
 
-    const margin = 500; // Off-screen margin for culling
+    const margin = 200;
 
-    // Helper to check if something is visible
     const isVisible = (x: number, y: number, radius: number) => {
       return x + radius > -margin && x - radius < width + margin &&
              y + radius > -margin && y - radius < height + margin;
     };
 
-    // First pass: draw visible orbits
+    // Batch orbits by type to minimize setLineDash calls
+    const planetOrbits: { cx: number; cy: number; rx: number; ry: number; rot: number }[] = [];
+    const moonOrbits: { cx: number; cy: number; rx: number; ry: number; rot: number }[] = [];
+
     for (const body of bodies.values()) {
       let parentX = 0, parentY = 0;
       if (body.parent && bodies.has(body.parent)) {
@@ -295,43 +307,65 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges, OnDestroy
       const orbitScreenY = offsetY - parentY * scale;
       const orbitRadius = body.sma * scale;
 
-      // Skip if orbit is completely off-screen
       if (!isVisible(orbitScreenX, orbitScreenY, orbitRadius)) continue;
-
-      // Skip tiny orbits
-      if (orbitRadius < 2) continue;
+      if (orbitRadius < 3) continue;
 
       const rotation = (body.lan + body.argPeriapsis) * Math.PI / 180;
       const e = body.eccentricity || 0;
       const semiMinor = body.sma * Math.sqrt(1 - e * e);
       const focusOffset = body.sma * e;
 
-      const orbitCenterX = orbitScreenX - focusOffset * scale * Math.cos(rotation);
-      const orbitCenterY = orbitScreenY + focusOffset * scale * Math.sin(rotation);
+      const orbit = {
+        cx: orbitScreenX - focusOffset * scale * Math.cos(rotation),
+        cy: orbitScreenY + focusOffset * scale * Math.sin(rotation),
+        rx: body.sma * scale,
+        ry: semiMinor * scale,
+        rot: -rotation
+      };
 
-      this.ctx.strokeStyle = body.parent ? '#ff66ff' : '#666666';
-      this.ctx.lineWidth = 1;
-      this.ctx.setLineDash([3, 3]);
-      this.ctx.beginPath();
-      this.ctx.ellipse(orbitCenterX, orbitCenterY, body.sma * scale, semiMinor * scale, -rotation, 0, Math.PI * 2);
-      this.ctx.stroke();
-      this.ctx.setLineDash([]);
+      if (body.parent) {
+        moonOrbits.push(orbit);
+      } else {
+        planetOrbits.push(orbit);
+      }
     }
 
-    // Second pass: draw visible bodies
+    // Draw planet orbits
+    this.ctx.lineWidth = 1;
+    this.ctx.setLineDash([3, 3]);
+
+    if (planetOrbits.length > 0) {
+      this.ctx.strokeStyle = '#666666';
+      for (const o of planetOrbits) {
+        this.ctx.beginPath();
+        this.ctx.ellipse(o.cx, o.cy, o.rx, o.ry, o.rot, 0, Math.PI * 2);
+        this.ctx.stroke();
+      }
+    }
+
+    // Draw moon orbits
+    if (moonOrbits.length > 0) {
+      this.ctx.strokeStyle = '#ff66ff';
+      for (const o of moonOrbits) {
+        this.ctx.beginPath();
+        this.ctx.ellipse(o.cx, o.cy, o.rx, o.ry, o.rot, 0, Math.PI * 2);
+        this.ctx.stroke();
+      }
+    }
+
+    this.ctx.setLineDash([]);
+
+    // Draw bodies
     const drawnLabels: { x: number; y: number; name: string }[] = [];
 
     for (const body of bodies.values()) {
       const bodyX = offsetX + (body.absoluteX || 0) * scale;
       const bodyY = offsetY - (body.absoluteY || 0) * scale;
-      const bodyRadius = Math.max(4, body.radius * scale);
+      const bodyRadius = Math.max(3, body.radius * scale);
 
-      // Skip if body is off-screen
-      if (!isVisible(bodyX, bodyY, bodyRadius + 50)) continue;
+      if (!isVisible(bodyX, bodyY, bodyRadius + 30)) continue;
 
-      const color = body.parent ? '#ff66ff' : this.getBodyColor(body.name);
-
-      this.ctx.fillStyle = color;
+      this.ctx.fillStyle = body.parent ? '#ff66ff' : this.getBodyColor(body.name);
       this.ctx.beginPath();
       this.ctx.arc(bodyX, bodyY, bodyRadius, 0, Math.PI * 2);
       this.ctx.fill();
@@ -339,7 +373,7 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges, OnDestroy
       drawnLabels.push({ x: bodyX, y: bodyY - bodyRadius - 8, name: body.name });
     }
 
-    // Third pass: draw labels with overlap avoidance
+    // Draw labels
     this.ctx.fillStyle = this.isLightMode() ? '#000' : '#fff';
     this.ctx.font = 'bold 9px Courier New';
     this.ctx.textAlign = 'center';
