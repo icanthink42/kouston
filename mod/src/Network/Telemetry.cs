@@ -36,6 +36,7 @@ namespace Kouston.Network
         public double horizontalSpeed; // Horizontal velocity (m/s)
         public double radarAltitude;   // Height above terrain (m)
         public double throttle;        // Current throttle (0-1)
+        public double groundSlope;     // Ground slope angle below vessel (degrees)
 
         // System bodies (flattened arrays for Unity JsonUtility compatibility)
         public string[] bodyNames = new string[0];
@@ -94,6 +95,7 @@ namespace Kouston.Network
                 horizontalSpeed = Sanitize(vessel.horizontalSrfSpeed),
                 radarAltitude = Sanitize(vessel.radarAltitude),
                 throttle = Sanitize(vessel.ctrlState?.mainThrottle ?? 0),
+                groundSlope = Sanitize(GetGroundSlope(vessel)),
 
                 // System bodies
                 bodyNames = GetBodyNames(vessel.mainBody),
@@ -345,6 +347,58 @@ namespace Kouston.Network
             double headingDeg = headingRad * 180.0 / Math.PI;
             if (headingDeg < 0) headingDeg += 360;
             return headingDeg;
+        }
+
+        private static double GetGroundSlope(Vessel vessel)
+        {
+            try
+            {
+                if (vessel.mainBody?.pqsController == null)
+                    return 0;
+
+                // Sample distance in meters (adaptive based on altitude)
+                double sampleDistance = Math.Max(5, Math.Min(50, vessel.radarAltitude * 0.5));
+
+                // Get vessel position
+                double lat = vessel.latitude * Math.PI / 180.0;
+                double lon = vessel.longitude * Math.PI / 180.0;
+
+                // Calculate offset in radians for the sample distance
+                double latOffset = sampleDistance / vessel.mainBody.Radius;
+                double lonOffset = sampleDistance / (vessel.mainBody.Radius * Math.Cos(lat));
+
+                // Sample terrain heights at 4 cardinal points
+                double heightN = GetTerrainHeight(vessel.mainBody, lat + latOffset, lon);
+                double heightS = GetTerrainHeight(vessel.mainBody, lat - latOffset, lon);
+                double heightE = GetTerrainHeight(vessel.mainBody, lat, lon + lonOffset);
+                double heightW = GetTerrainHeight(vessel.mainBody, lat, lon - lonOffset);
+                double heightC = GetTerrainHeight(vessel.mainBody, lat, lon);
+
+                // Calculate slopes in each direction
+                double slopeNS = Math.Atan2(Math.Abs(heightN - heightS), 2 * sampleDistance) * 180.0 / Math.PI;
+                double slopeEW = Math.Atan2(Math.Abs(heightE - heightW), 2 * sampleDistance) * 180.0 / Math.PI;
+
+                // Return the maximum slope
+                return Math.Max(slopeNS, slopeEW);
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        private static double GetTerrainHeight(CelestialBody body, double latRad, double lonRad)
+        {
+            // Convert lat/lon to radial vector
+            Vector3d radial = new Vector3d(
+                Math.Cos(latRad) * Math.Cos(lonRad),
+                Math.Sin(latRad),
+                Math.Cos(latRad) * Math.Sin(lonRad)
+            );
+
+            // Get surface height from PQS controller
+            double surfaceHeight = body.pqsController.GetSurfaceHeight(radial);
+            return surfaceHeight - body.Radius;
         }
 
         // Sanitize double values to avoid JSON serialization issues with Infinity/NaN

@@ -47,4 +47,16 @@ export class EdlViewComponent {
     }
     return this.vessel && this.vessel.throttle > 0 ? 'lander_fire.png' : 'lander.png';
   }
+
+  getGroundSlope(): number {
+    if (!this.vessel) return 0;
+    return Math.round(this.vessel.groundSlope || 0);
+  }
+
+  getSlopeClass(): string {
+    const slope = this.getGroundSlope();
+    if (slope < 10) return 'safe';
+    if (slope < 20) return 'caution';
+    return 'danger';
+  }
 }

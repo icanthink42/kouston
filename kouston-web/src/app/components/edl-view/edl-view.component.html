@@ -68,6 +68,23 @@
   </div>
 
   <div class="edl-bottom">
+    <div class="ground-slope">
+      <span class="label">Ground Slope</span>
+      <div class="slope-indicator">
+        <svg viewBox="0 0 80 40" class="slope-svg">
+          <line x1="10" y1="30" x2="70" y2="30"
+                stroke="var(--text-muted)" stroke-width="1" stroke-dasharray="2,2"/>
+          <line x1="10" y1="30" x2="70" y2="30"
+                [class]="'slope-line ' + getSlopeClass()"
+                [attr.transform]="'rotate(' + (-getGroundSlope()) + ' 40 30)'"
+                stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="value" [class]="getSlopeClass()">
+        {{ getGroundSlope() }}°
+      </span>
+    </div>
+
     <div class="radar-altitude">
       <span class="label">Radar Altitude</span>
       <span class="value">

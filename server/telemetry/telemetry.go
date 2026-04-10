@@ -33,6 +33,7 @@ type Vessel struct {
 	HorizontalSpeed float64 `json:"horizontalSpeed"`
 	RadarAltitude   float64 `json:"radarAltitude"`
 	Throttle        float64 `json:"throttle"`
+	GroundSlope     float64 `json:"groundSlope"`
 
 	// System bodies (flattened arrays)
 	BodyNames           []string  `json:"bodyNames"`
