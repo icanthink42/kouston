@@ -8,6 +8,7 @@ namespace Kouston
     [KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
     public class Kouston : MonoBehaviour
     {
+        public static Kouston Instance { get; private set; }
         public static Client Client { get; private set; }
         public static bool IsViewLocked { get; private set; } = false;
 
@@ -17,8 +18,17 @@ namespace Kouston
         private float telemetryInterval = 0.5f;
         private float lastTelemetryTime;
 
+        // EVA first-person camera
+        private float evaPitch = 0f;
+        private float evaYaw = 0f;
+        private bool wasInEva = false;
+        private bool wasRagdoll = false;
+        private bool flightCameraWasEnabled = true;
+        private const float MouseSensitivity = 2f;
+
         public void Start()
         {
+            Instance = this;
             Debug.Log("[Kouston] Mod loaded successfully!");
 
             if (Client == null)
@@ -46,6 +56,20 @@ namespace Kouston
                 UnlockView();
             }
 
+            // Track EVA state transitions
+            bool isInEva = IsViewLocked && HighLogic.LoadedSceneIsFlight && FlightGlobals.ActiveVessel != null && FlightGlobals.ActiveVessel.isEVA;
+
+            if (isInEva && !wasInEva)
+            {
+                // Just entered EVA mode - initialize
+                EnterEvaFirstPerson();
+            }
+            else if (!isInEva && wasInEva)
+            {
+                // Just left EVA mode - cleanup
+                ExitEvaFirstPerson();
+            }
+
             if (!Client.IsConnected)
                 return;
 
@@ -65,6 +89,150 @@ namespace Kouston
         }
 
         private const string ViewLockID = "KoustonViewLock";
+        private const string EvaLockID = "KoustonEvaLock";
+
+        private void EnterEvaFirstPerson()
+        {
+            var kerbal = FlightGlobals.ActiveVessel?.evaController;
+            if (kerbal == null)
+                return;
+
+            wasInEva = true;
+
+            // Get initial yaw from kerbal's forward direction projected onto horizontal plane
+            Vector3 localUp = (kerbal.transform.position - FlightGlobals.ActiveVessel.mainBody.position).normalized;
+            Vector3 forward = kerbal.transform.forward;
+            Vector3 flatForward = Vector3.ProjectOnPlane(forward, localUp).normalized;
+            evaYaw = Mathf.Atan2(flatForward.x, flatForward.z) * Mathf.Rad2Deg;
+            evaPitch = 0f;
+
+            // Disable FlightCamera's automatic updates
+            var flightCamera = FlightCamera.fetch;
+            if (flightCamera != null)
+            {
+                flightCameraWasEnabled = flightCamera.enabled;
+                flightCamera.enabled = false;
+            }
+
+            // Remove the IVA lock and set EVA lock (block camera modes and pause menu)
+            InputLockManager.RemoveControlLock(ViewLockID);
+            InputLockManager.SetControlLock(ControlTypes.CAMERAMODES | ControlTypes.PAUSE, EvaLockID);
+
+            // Lock and hide cursor for FPS-style mouse look
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+
+            // Show UI for EVA prompts (ladder, hatch, etc.)
+            GameEvents.onShowUI.Fire();
+
+            Debug.Log("[Kouston] Entered EVA first-person mode");
+        }
+
+        private void ExitEvaFirstPerson()
+        {
+            wasInEva = false;
+
+            // Re-enable FlightCamera
+            var flightCamera = FlightCamera.fetch;
+            if (flightCamera != null)
+            {
+                flightCamera.enabled = flightCameraWasEnabled;
+            }
+
+            // Remove EVA lock, restore IVA lock if still in locked mode
+            InputLockManager.RemoveControlLock(EvaLockID);
+            if (IsViewLocked)
+            {
+                InputLockManager.SetControlLock(
+                    ControlTypes.CAMERACONTROLS | ControlTypes.CAMERAMODES | ControlTypes.PAUSE,
+                    ViewLockID
+                );
+                // Hide UI again for IVA
+                GameEvents.onHideUI.Fire();
+            }
+
+            // Unlock cursor
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
+            Debug.Log("[Kouston] Exited EVA first-person mode");
+        }
+
+        public void LateUpdate()
+        {
+            // Update EVA camera in LateUpdate to override FlightCamera
+            if (wasInEva && FlightGlobals.ActiveVessel != null && FlightGlobals.ActiveVessel.isEVA)
+            {
+                UpdateEvaFirstPerson();
+            }
+        }
+
+        private void UpdateEvaFirstPerson()
+        {
+            var kerbal = FlightGlobals.ActiveVessel.evaController;
+            if (kerbal == null)
+                return;
+
+            // Right-click to toggle kerbal context menu
+            if (Input.GetMouseButtonDown(1))
+            {
+                var part = FlightGlobals.ActiveVessel.rootPart;
+                if (part != null && UIPartActionController.Instance != null)
+                {
+                    UIPartActionController.Instance.SpawnPartActionWindow(part);
+                }
+            }
+
+            // Don't override rotation if kerbal is ragdolling - let it recover naturally
+            if (kerbal.isRagdoll)
+            {
+                wasRagdoll = true;
+                return;
+            }
+
+            // Resync yaw after recovering from ragdoll
+            if (wasRagdoll)
+            {
+                wasRagdoll = false;
+                Vector3 up = (kerbal.transform.position - FlightGlobals.ActiveVessel.mainBody.position).normalized;
+                Vector3 flatForward = Vector3.ProjectOnPlane(kerbal.transform.forward, up).normalized;
+                evaYaw = Mathf.Atan2(flatForward.x, flatForward.z) * Mathf.Rad2Deg;
+                evaPitch = 0f;
+            }
+
+            // Get mouse input
+            float mouseX = Input.GetAxis("Mouse X") * MouseSensitivity;
+            float mouseY = Input.GetAxis("Mouse Y") * MouseSensitivity;
+
+            // Update rotation angles
+            evaYaw += mouseX;
+            evaPitch -= mouseY;
+            evaPitch = Mathf.Clamp(evaPitch, -80f, 80f);
+
+            // Get the local "up" direction (away from planet center)
+            Vector3 localUp = (kerbal.transform.position - FlightGlobals.ActiveVessel.mainBody.position).normalized;
+
+            // Build rotation relative to local up (gravity)
+            Quaternion upRotation = Quaternion.FromToRotation(Vector3.up, localUp);
+            Quaternion yawRotation = Quaternion.AngleAxis(evaYaw, Vector3.up);
+            kerbal.transform.rotation = upRotation * yawRotation;
+
+            // Position camera at kerbal's head for first-person view
+            var cam = FlightCamera.fetch;
+            if (cam != null)
+            {
+                // Get head position (offset up from kerbal center)
+                Vector3 headPos = kerbal.transform.position + localUp * 0.5f;
+
+                // Calculate look direction with pitch relative to local orientation
+                Quaternion pitchRotation = Quaternion.AngleAxis(evaPitch, Vector3.right);
+                Quaternion lookRotation = upRotation * yawRotation * pitchRotation;
+
+                // Set camera position and rotation
+                cam.transform.position = headPos;
+                cam.transform.rotation = lookRotation;
+            }
+        }
 
         public static void LockView()
         {
@@ -96,8 +264,15 @@ namespace Kouston
             if (!IsViewLocked)
                 return;
 
-            // Remove input lock
+            // Clean up EVA mode if active
+            if (Instance != null && Instance.wasInEva)
+            {
+                Instance.ExitEvaFirstPerson();
+            }
+
+            // Remove input locks
             InputLockManager.RemoveControlLock(ViewLockID);
+            InputLockManager.RemoveControlLock(EvaLockID);
 
             // Show the UI again
             GameEvents.onShowUI.Fire();
@@ -113,7 +288,12 @@ namespace Kouston
             // Make sure to unlock view if locked
             if (IsViewLocked)
             {
+                if (wasInEva)
+                {
+                    ExitEvaFirstPerson();
+                }
                 InputLockManager.RemoveControlLock(ViewLockID);
+                InputLockManager.RemoveControlLock(EvaLockID);
                 IsViewLocked = false;
             }
 
