@@ -46,6 +46,10 @@
       <HintPath>$(KSPPath)/KSP_x64_Data/Managed/UnityEngine.JSONSerializeModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>$(KSPPath)/KSP_x64_Data/Managed/UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

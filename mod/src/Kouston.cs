@@ -9,6 +9,7 @@ namespace Kouston
     public class Kouston : MonoBehaviour
     {
         public static Client Client { get; private set; }
+        public static bool IsViewLocked { get; private set; } = false;
 
         private ConnectWindow connectWindow;
         private ApplicationLauncherButton toolbarButton;
@@ -39,6 +40,12 @@ namespace Kouston
 
         public void Update()
         {
+            // Check for Ctrl+L to unlock view
+            if (IsViewLocked && Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.L))
+            {
+                UnlockView();
+            }
+
             if (!Client.IsConnected)
                 return;
 
@@ -57,9 +64,59 @@ namespace Kouston
             }
         }
 
+        private const string ViewLockID = "KoustonViewLock";
+
+        public static void LockView()
+        {
+            if (IsViewLocked)
+                return;
+
+            // Only works in flight scene
+            if (HighLogic.LoadedSceneIsFlight && FlightGlobals.ActiveVessel != null)
+            {
+                // Switch to IVA (internal) view
+                CameraManager.Instance.SetCameraIVA();
+
+                // Lock camera controls and escape key to prevent leaving IVA
+                InputLockManager.SetControlLock(
+                    ControlTypes.CAMERACONTROLS | ControlTypes.CAMERAMODES | ControlTypes.PAUSE,
+                    ViewLockID
+                );
+
+                // Hide the UI
+                GameEvents.onHideUI.Fire();
+
+                IsViewLocked = true;
+                Debug.Log("[Kouston] View locked. Press Ctrl+L to unlock.");
+            }
+        }
+
+        public static void UnlockView()
+        {
+            if (!IsViewLocked)
+                return;
+
+            // Remove input lock
+            InputLockManager.RemoveControlLock(ViewLockID);
+
+            // Show the UI again
+            GameEvents.onShowUI.Fire();
+
+            IsViewLocked = false;
+            Debug.Log("[Kouston] View unlocked.");
+        }
+
         public void OnDestroy()
         {
             Debug.Log("[Kouston] Mod unloaded.");
+
+            // Make sure to unlock view if locked
+            if (IsViewLocked)
+            {
+                InputLockManager.RemoveControlLock(ViewLockID);
+                IsViewLocked = false;
+            }
+
             GameEvents.onGUIApplicationLauncherReady.Remove(OnGUIAppLauncherReady);
             GameEvents.onGUIApplicationLauncherDestroyed.Remove(OnGUIAppLauncherDestroyed);
             RemoveToolbarButton();
@@ -121,7 +178,10 @@ namespace Kouston
 
         public void OnGUI()
         {
-            connectWindow.Draw();
+            if (!IsViewLocked)
+            {
+                connectWindow.Draw();
+            }
         }
     }
 }

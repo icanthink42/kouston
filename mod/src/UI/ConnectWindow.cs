@@ -6,7 +6,7 @@ namespace Kouston.UI
     public class ConnectWindow
     {
         private bool showWindow = false;
-        private Rect windowRect = new Rect(100, 100, 300, 210);
+        private Rect windowRect = new Rect(100, 100, 300, 260);
         private string serverIP = "127.0.0.1";
         private string serverPort = "7777";
         private bool useSSL = false;
@@ -77,6 +77,19 @@ namespace Kouston.UI
                         Debug.LogError("[Kouston] Invalid port number");
                     }
                 }
+            }
+
+            GUILayout.Space(10);
+
+            // Lock View button - only available in flight scene
+            if (HighLogic.LoadedSceneIsFlight)
+            {
+                if (GUILayout.Button("Lock View (IVA)"))
+                {
+                    Kouston.LockView();
+                    showWindow = false;
+                }
+                GUILayout.Label("<size=10><color=#888888>Ctrl+L to unlock</color></size>");
             }
 
             GUILayout.EndVertical();
