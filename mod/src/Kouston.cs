@@ -24,6 +24,7 @@ namespace Kouston
         private bool wasInEva = false;
         private bool wasRagdoll = false;
         private bool flightCameraWasEnabled = true;
+        private bool evaMenuOpen = false;
         private const float MouseSensitivity = 2f;
 
         public void Start()
@@ -98,6 +99,7 @@ namespace Kouston
                 return;
 
             wasInEva = true;
+            evaMenuOpen = false;
 
             // Get initial yaw from kerbal's forward direction projected onto horizontal plane
             Vector3 localUp = (kerbal.transform.position - FlightGlobals.ActiveVessel.mainBody.position).normalized;
@@ -131,6 +133,7 @@ namespace Kouston
         private void ExitEvaFirstPerson()
         {
             wasInEva = false;
+            evaMenuOpen = false;
 
             // Re-enable FlightCamera
             var flightCamera = FlightCamera.fetch;
@@ -173,15 +176,17 @@ namespace Kouston
             if (kerbal == null)
                 return;
 
-            // Right-click to toggle kerbal context menu
+            // Right-click to toggle EVA actions menu
             if (Input.GetMouseButtonDown(1))
             {
-                var part = FlightGlobals.ActiveVessel.rootPart;
-                if (part != null && UIPartActionController.Instance != null)
-                {
-                    UIPartActionController.Instance.SpawnPartActionWindow(part);
-                }
+                evaMenuOpen = !evaMenuOpen;
+                Cursor.lockState = evaMenuOpen ? CursorLockMode.None : CursorLockMode.Locked;
+                Cursor.visible = evaMenuOpen;
             }
+
+            // Don't process mouse look if menu is open
+            if (evaMenuOpen)
+                return;
 
             // Don't override rotation if kerbal is ragdolling - let it recover naturally
             if (kerbal.isRagdoll)
@@ -362,6 +367,59 @@ namespace Kouston
             {
                 connectWindow.Draw();
             }
+            else if (evaMenuOpen && wasInEva)
+            {
+                DrawEvaMenu();
+            }
+        }
+
+        private Rect evaMenuRect = new Rect(Screen.width / 2 - 100, Screen.height / 2 - 150, 200, 300);
+
+        private void DrawEvaMenu()
+        {
+            var kerbal = FlightGlobals.ActiveVessel?.evaController;
+            if (kerbal == null)
+                return;
+
+            evaMenuRect = GUILayout.Window(9999, evaMenuRect, DrawEvaMenuWindow, "EVA Actions");
+        }
+
+        private void DrawEvaMenuWindow(int windowID)
+        {
+            var kerbal = FlightGlobals.ActiveVessel?.evaController;
+            if (kerbal == null)
+                return;
+
+            GUILayout.BeginVertical();
+
+            // Get all events from the KerbalEVA module and other part modules
+            foreach (var module in kerbal.part.Modules)
+            {
+                foreach (var evt in module.Events)
+                {
+                    if (evt.guiActive && evt.active)
+                    {
+                        if (GUILayout.Button(evt.guiName))
+                        {
+                            evt.Invoke();
+                            evaMenuOpen = false;
+                            Cursor.lockState = CursorLockMode.Locked;
+                            Cursor.visible = false;
+                        }
+                    }
+                }
+            }
+
+            GUILayout.Space(10);
+            if (GUILayout.Button("Close"))
+            {
+                evaMenuOpen = false;
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+
+            GUILayout.EndVertical();
+            GUI.DragWindow();
         }
     }
 }
