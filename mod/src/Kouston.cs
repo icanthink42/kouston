@@ -147,7 +147,7 @@ namespace Kouston
             if (IsViewLocked)
             {
                 InputLockManager.SetControlLock(
-                    ControlTypes.CAMERACONTROLS | ControlTypes.CAMERAMODES | ControlTypes.PAUSE | ControlTypes.VESSEL_SWITCHING,
+                    ControlTypes.CAMERAMODES | ControlTypes.PAUSE | ControlTypes.VESSEL_SWITCHING,
                     ViewLockID
                 );
                 // Hide UI again for IVA
@@ -250,9 +250,9 @@ namespace Kouston
                 // Switch to IVA (internal) view
                 CameraManager.Instance.SetCameraIVA();
 
-                // Lock camera controls, escape key, and vessel switching to prevent leaving IVA
+                // Lock camera modes, escape key, and vessel switching to prevent leaving IVA
                 InputLockManager.SetControlLock(
-                    ControlTypes.CAMERACONTROLS | ControlTypes.CAMERAMODES | ControlTypes.PAUSE | ControlTypes.VESSEL_SWITCHING,
+                    ControlTypes.CAMERAMODES | ControlTypes.PAUSE | ControlTypes.VESSEL_SWITCHING,
                     ViewLockID
                 );
 
