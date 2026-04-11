@@ -27,6 +27,12 @@ namespace Kouston
         private bool evaMenuOpen = false;
         private const float MouseSensitivity = 2f;
 
+        // Time warp indicator
+        private int lastWarpRateIndex = 0;
+        private float warpIndicatorTime = 0f;
+        private string warpIndicatorText = "";
+        private const float WarpIndicatorDuration = 2f;
+
         public void Start()
         {
             Instance = this;
@@ -55,6 +61,34 @@ namespace Kouston
             if (IsViewLocked && Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.L))
             {
                 UnlockView();
+            }
+
+            // Track time warp changes while in locked IVA
+            if (IsViewLocked && TimeWarp.fetch != null)
+            {
+                int currentIndex = TimeWarp.CurrentRateIndex;
+                if (currentIndex != lastWarpRateIndex)
+                {
+                    // Use the target warp rate from the rates array, not the transitioning rate
+                    float[] rates = TimeWarp.fetch.warpRates;
+                    float rate = (rates != null && currentIndex < rates.Length) ? rates[currentIndex] : 1f;
+                    if (rate <= 1f)
+                    {
+                        warpIndicatorText = "1x";
+                    }
+                    else
+                    {
+                        warpIndicatorText = rate.ToString("N0") + "x";
+                    }
+                    warpIndicatorTime = WarpIndicatorDuration;
+                    lastWarpRateIndex = currentIndex;
+                }
+            }
+
+            // Fade out warp indicator
+            if (warpIndicatorTime > 0f)
+            {
+                warpIndicatorTime -= Time.deltaTime;
             }
 
             // Track EVA state transitions
@@ -147,7 +181,7 @@ namespace Kouston
             if (IsViewLocked)
             {
                 InputLockManager.SetControlLock(
-                    ControlTypes.CAMERAMODES | ControlTypes.PAUSE | ControlTypes.VESSEL_SWITCHING,
+                    ControlTypes.CAMERAMODES | ControlTypes.PAUSE | ControlTypes.VESSEL_SWITCHING | ControlTypes.MAP,
                     ViewLockID
                 );
                 // Hide UI again for IVA
@@ -250,9 +284,9 @@ namespace Kouston
                 // Switch to IVA (internal) view
                 CameraManager.Instance.SetCameraIVA();
 
-                // Lock camera modes, escape key, and vessel switching to prevent leaving IVA
+                // Lock camera modes, escape key, map, and vessel switching to prevent leaving IVA
                 InputLockManager.SetControlLock(
-                    ControlTypes.CAMERAMODES | ControlTypes.PAUSE | ControlTypes.VESSEL_SWITCHING,
+                    ControlTypes.CAMERAMODES | ControlTypes.PAUSE | ControlTypes.VESSEL_SWITCHING | ControlTypes.MAP,
                     ViewLockID
                 );
 
@@ -371,6 +405,34 @@ namespace Kouston
             {
                 DrawEvaMenu();
             }
+
+            // Draw time warp indicator
+            if (IsViewLocked && warpIndicatorTime > 0f)
+            {
+                DrawWarpIndicator();
+            }
+        }
+
+        private void DrawWarpIndicator()
+        {
+            float alpha = Mathf.Clamp01(warpIndicatorTime / WarpIndicatorDuration);
+
+            GUIStyle style = new GUIStyle(GUI.skin.label);
+            style.fontSize = 48;
+            style.fontStyle = FontStyle.Bold;
+            style.alignment = TextAnchor.MiddleCenter;
+            style.normal.textColor = new Color(1f, 1f, 1f, alpha);
+
+            float width = 200f;
+            float height = 60f;
+            Rect rect = new Rect(
+                (Screen.width - width) / 2f,
+                Screen.height * 0.2f,
+                width,
+                height
+            );
+
+            GUI.Label(rect, warpIndicatorText, style);
         }
 
         private Rect evaMenuRect = new Rect(Screen.width / 2 - 100, Screen.height / 2 - 150, 200, 300);
