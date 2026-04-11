@@ -53,6 +53,72 @@
               [selectedVesselId]="selectedVesselId"
               (vesselSelect)="selectVessel($event)">
             </app-vessel-sidebar>
+
+            @if (selectedVessel) {
+              <div class="telemetry-panel">
+                <h3>Orbital Data</h3>
+
+                <div class="telemetry-group">
+                  <div class="telemetry-item">
+                    <span class="label">Body</span>
+                    <span class="value">{{ selectedVessel.bodyName }}</span>
+                  </div>
+
+                  <div class="telemetry-item">
+                    <span class="label">Altitude</span>
+                    <span class="value">{{ fmt.altitude(selectedVessel.altitude) }}</span>
+                  </div>
+                </div>
+
+                <div class="telemetry-group">
+                  <div class="telemetry-item">
+                    <span class="label">Apoapsis</span>
+                    <span class="value">{{ fmt.altitude(selectedVessel.apoapsis) }}</span>
+                  </div>
+
+                  <div class="telemetry-item">
+                    <span class="label">Periapsis</span>
+                    <span class="value">{{ fmt.altitude(selectedVessel.periapsis) }}</span>
+                  </div>
+                </div>
+
+                <div class="telemetry-group">
+                  <div class="telemetry-item">
+                    <span class="label">Eccentricity</span>
+                    <span class="value">{{ selectedVessel.eccentricity.toFixed(4) }}</span>
+                  </div>
+
+                  <div class="telemetry-item">
+                    <span class="label">Inclination</span>
+                    <span class="value">{{ selectedVessel.inclination.toFixed(2) }}°</span>
+                  </div>
+                </div>
+
+                <div class="telemetry-group">
+                  <div class="telemetry-item">
+                    <span class="label">Period</span>
+                    <span class="value">{{ (selectedVessel.period / 60).toFixed(1) }} min</span>
+                  </div>
+
+                  <div class="telemetry-item">
+                    <span class="label">True Anomaly</span>
+                    <span class="value">{{ (selectedVessel.trueAnomaly * 180 / 3.14159).toFixed(1) }}°</span>
+                  </div>
+                </div>
+
+                <div class="telemetry-group">
+                  <div class="telemetry-item">
+                    <span class="label">Semi-Major Axis</span>
+                    <span class="value">{{ fmt.altitude(selectedVessel.semiMajorAxis) }}</span>
+                  </div>
+
+                  <div class="telemetry-item">
+                    <span class="label">Velocity</span>
+                    <span class="value">{{ fmt.velocity(selectedVessel.velocity) }}</span>
+                  </div>
+                </div>
+              </div>
+            }
           </aside>
         </div>
       }

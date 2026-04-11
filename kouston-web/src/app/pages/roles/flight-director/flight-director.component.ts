@@ -38,9 +38,13 @@ export class FlightDirectorComponent extends BaseTelemetryComponent implements O
     const safeAltitude = hasAtmosphere ? vessel.atmosphereHeight : 0;
     const isLanded = vessel.radarAltitude < 50 && Math.abs(vessel.velocity) < 10;
     const isEarth = vessel.bodyName === 'Kerbin' || vessel.bodyName === 'Earth';
+    const isAscending = vessel.verticalSpeed > 0;
+    const isBurning = vessel.throttle > 0;
 
-    // On Earth: always orbital view when landed
+    // On Earth: always orbital view when landed, ascending, or burning
     if (isLanded && isEarth) {
+      this.currentDisplay = 'orbital';
+    } else if (isEarth && (isAscending || isBurning)) {
       this.currentDisplay = 'orbital';
     } else if (isLanded || vessel.periapsis <= safeAltitude) {
       this.currentDisplay = hasAtmosphere ? 'pod' : 'edl';

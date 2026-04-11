@@ -152,6 +152,9 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges, OnDestroy
       // Draw vessel orbit around its parent body
       this.drawVesselOrbit(bodies, offsetX, offsetY, scale, width, height);
 
+      // Draw AP and PE markers
+      this.drawApsides(bodies, offsetX, offsetY, scale);
+
       // Draw spacecraft
       this.drawSpacecraft(spacecraft, offsetX, offsetY, scale);
 
@@ -488,6 +491,60 @@ export class OrbitalViewComponent implements AfterViewInit, OnChanges, OnDestroy
 
     this.ctx.stroke();
     this.ctx.setLineDash([]);
+  }
+
+  private drawApsides(bodies: Map<string, BodyData>, offsetX: number, offsetY: number, scale: number): void {
+    if (!this.ctx || !this.vessel) return;
+
+    const e = this.vessel.eccentricity;
+    // Only draw for elliptical orbits
+    if (e >= 1) return;
+
+    const sma = Math.abs(this.vessel.semiMajorAxis);
+    const rotation = ((this.vessel.lan || 0) + (this.vessel.argumentOfPeriapsis || 0)) * Math.PI / 180;
+
+    // Get parent body position
+    let parentX = 0, parentY = 0;
+    const parentBody = bodies.get(this.vessel.bodyName);
+    if (parentBody) {
+      parentX = parentBody.absoluteX || 0;
+      parentY = parentBody.absoluteY || 0;
+    }
+
+    const orbitCenterX = offsetX + parentX * scale;
+    const orbitCenterY = offsetY - parentY * scale;
+
+    // Periapsis is at true anomaly = 0
+    const rPe = sma * (1 - e);
+    const peX = orbitCenterX + rPe * scale * Math.cos(rotation);
+    const peY = orbitCenterY - rPe * scale * Math.sin(rotation);
+
+    // Apoapsis is at true anomaly = π
+    const rAp = sma * (1 + e);
+    const apX = orbitCenterX + rAp * scale * Math.cos(rotation + Math.PI);
+    const apY = orbitCenterY - rAp * scale * Math.sin(rotation + Math.PI);
+
+    const light = this.isLightMode();
+
+    // Draw PE marker
+    this.ctx.fillStyle = '#00aaff';
+    this.ctx.beginPath();
+    this.ctx.arc(peX, peY, 5, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    this.ctx.fillStyle = light ? '#000' : '#fff';
+    this.ctx.font = 'bold 10px Courier New';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('PE', peX, peY - 10);
+
+    // Draw AP marker
+    this.ctx.fillStyle = '#00aaff';
+    this.ctx.beginPath();
+    this.ctx.arc(apX, apY, 5, 0, Math.PI * 2);
+    this.ctx.fill();
+
+    this.ctx.fillStyle = light ? '#000' : '#fff';
+    this.ctx.fillText('AP', apX, apY - 10);
   }
 
   private drawSpacecraft(pos: { x: number; y: number }, offsetX: number, offsetY: number, scale: number): void {
