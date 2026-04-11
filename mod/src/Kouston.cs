@@ -116,9 +116,9 @@ namespace Kouston
                 flightCamera.enabled = false;
             }
 
-            // Remove the IVA lock and set EVA lock (block camera modes and pause menu)
+            // Remove the IVA lock and set EVA lock (block camera modes, pause, map, and vessel switching)
             InputLockManager.RemoveControlLock(ViewLockID);
-            InputLockManager.SetControlLock(ControlTypes.CAMERAMODES | ControlTypes.PAUSE, EvaLockID);
+            InputLockManager.SetControlLock(ControlTypes.CAMERAMODES | ControlTypes.PAUSE | ControlTypes.MAP | ControlTypes.VESSEL_SWITCHING, EvaLockID);
 
             // Lock and hide cursor for FPS-style mouse look
             Cursor.lockState = CursorLockMode.Locked;
@@ -147,7 +147,7 @@ namespace Kouston
             if (IsViewLocked)
             {
                 InputLockManager.SetControlLock(
-                    ControlTypes.CAMERACONTROLS | ControlTypes.CAMERAMODES | ControlTypes.PAUSE,
+                    ControlTypes.CAMERACONTROLS | ControlTypes.CAMERAMODES | ControlTypes.PAUSE | ControlTypes.VESSEL_SWITCHING,
                     ViewLockID
                 );
                 // Hide UI again for IVA
@@ -250,9 +250,9 @@ namespace Kouston
                 // Switch to IVA (internal) view
                 CameraManager.Instance.SetCameraIVA();
 
-                // Lock camera controls and escape key to prevent leaving IVA
+                // Lock camera controls, escape key, and vessel switching to prevent leaving IVA
                 InputLockManager.SetControlLock(
-                    ControlTypes.CAMERACONTROLS | ControlTypes.CAMERAMODES | ControlTypes.PAUSE,
+                    ControlTypes.CAMERACONTROLS | ControlTypes.CAMERAMODES | ControlTypes.PAUSE | ControlTypes.VESSEL_SWITCHING,
                     ViewLockID
                 );
 
