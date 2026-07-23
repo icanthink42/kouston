@@ -51,16 +51,17 @@ jobs:
         shell: bash
         run: |
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
-            version="$GITHUB_REF_NAME"
+            release_tag="$GITHUB_REF_NAME"
           else
-            version="${GITHUB_SHA::7}"
+            release_tag="build-$GITHUB_RUN_NUMBER"
           fi
 
-          archive="Kouston-$version.zip"
+          archive="Kouston-$release_tag.zip"
           mkdir -p release/GameData/Kouston/Plugins
           cp mod/GameData/Kouston/Plugins/Kouston.dll release/GameData/Kouston/Plugins/
           (cd release && zip -r "../$archive" GameData)
           echo "archive=$archive" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$release_tag" >> "$GITHUB_OUTPUT"
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
@@ -70,16 +71,18 @@ jobs:
           if-no-files-found: error
 
       - name: Publish GitHub release
-        if: github.ref_type == 'tag'
+        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           ARCHIVE: ${{ steps.package.outputs.archive }}
+          RELEASE_TAG: ${{ steps.package.outputs.release_tag }}
         shell: bash
         run: |
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" "$ARCHIVE" --clobber
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "$ARCHIVE" --clobber
           else
-            gh release create "$GITHUB_REF_NAME" "$ARCHIVE" \
-              --title "$GITHUB_REF_NAME" \
+            gh release create "$RELEASE_TAG" "$ARCHIVE" \
+              --target "$GITHUB_SHA" \
+              --title "$RELEASE_TAG" \
               --generate-notes
           fi
