@@ -1,0 +1,85 @@
+name: Build Mod Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+    paths:
+      - 'mod/**'
+      - '.github/workflows/release-mod.yml'
+  pull_request:
+    paths:
+      - 'mod/**'
+      - '.github/workflows/release-mod.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  KSP_LIBS_URL: https://github.com/KSPModdingLibs/KSPLibs/raw/529db6956a70a9e4fc0591382ff0fe4f55d96010/KSP-1.12.5.zip
+
+jobs:
+  build:
+    name: Build and package
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Download KSP reference assemblies
+        shell: bash
+        run: |
+          curl --fail --location --retry 3 \
+            "$KSP_LIBS_URL" \
+            --output "$RUNNER_TEMP/ksp-libs.zip"
+          unzip -q "$RUNNER_TEMP/ksp-libs.zip" -d "$RUNNER_TEMP/ksp"
+
+      - name: Build mod
+        run: dotnet build mod/Kouston.csproj --configuration Release -p:KSPPath="$RUNNER_TEMP/ksp"
+
+      - name: Create release zip
+        id: package
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            version="$GITHUB_REF_NAME"
+          else
+            version="${GITHUB_SHA::7}"
+          fi
+
+          archive="Kouston-$version.zip"
+          mkdir -p release/GameData/Kouston/Plugins
+          cp mod/GameData/Kouston/Plugins/Kouston.dll release/GameData/Kouston/Plugins/
+          (cd release && zip -r "../$archive" GameData)
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kouston-mod-${{ github.run_number }}
+          path: ${{ steps.package.outputs.archive }}
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARCHIVE: ${{ steps.package.outputs.archive }}
+        shell: bash
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$ARCHIVE" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "$ARCHIVE" \
+              --title "$GITHUB_REF_NAME" \
+              --generate-notes
+          fi
