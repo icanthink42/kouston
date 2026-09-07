@@ -37,9 +37,9 @@ main {
 
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 3rem;
-  max-width: 1000px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.5rem;
+  max-width: 1600px;
   width: 100%;
 }
 
@@ -47,7 +47,7 @@ main {
   background: var(--card-bg);
   border: 2px solid var(--border-color);
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.5rem;
   cursor: pointer;
   text-align: center;
   font-family: inherit;
@@ -107,11 +107,11 @@ main {
   }
 
   .flag {
-    width: 400px;
+    width: min(100%, 240px);
     height: auto;
     transform: rotate(90deg);
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
-    margin: 8rem 0;
+    margin: 4rem 0;
   }
 
   h2 {
