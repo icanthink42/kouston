@@ -2,7 +2,14 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { TelemetryState } from '../models/telemetry';
 
-export type Team = 'usa' | 'ussr';
+export type Team = 'usa' | 'ussr' | 'china' | 'brazil';
+
+const TEAM_HOSTS: Record<Team, string> = {
+  usa: 'kouston-usa.neelema.net',
+  ussr: 'kouston-ussr.neelema.net',
+  china: 'kouston-china.neelema.net',
+  brazil: 'kouston-brazil.neelema.net',
+};
 
 @Injectable({
   providedIn: 'root'
@@ -29,8 +36,7 @@ export class TelemetryService {
 
   connectWithTeam(team: Team): void {
     this.teamSubject.next(team);
-    const host = team === 'usa' ? 'kouston-usa.neelema.net' : 'kouston-ussr.neelema.net';
-    this.connect(host, 443);
+    this.connect(TEAM_HOSTS[team], 443);
   }
 
   connectLocal(ip: string, port: number = 7777, secure: boolean = false): void {

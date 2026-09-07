@@ -84,6 +84,28 @@ main {
     }
   }
 
+  &.china {
+    &:hover {
+      background: var(--bg-hover);
+      border-color: #ffde00;
+    }
+
+    h2 {
+      color: #ffde00;
+    }
+  }
+
+  &.brazil {
+    &:hover {
+      background: var(--bg-hover);
+      border-color: #ffdf00;
+    }
+
+    h2 {
+      color: #ffdf00;
+    }
+  }
+
   .flag {
     width: 400px;
     height: auto;

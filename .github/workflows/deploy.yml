@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'server/**'
+      - '.github/workflows/deploy.yml'
   workflow_dispatch:
 
 env:
@@ -55,9 +56,11 @@ jobs:
               "aws s3 cp s3://${{ env.S3_BUCKET }}/kouston@.service /etc/systemd/system/kouston@.service",
               "chmod +x /opt/kouston/kouston-server",
               "systemctl daemon-reload",
-              "systemctl enable kouston@7777 kouston@7778",
+              "systemctl enable kouston@7777 kouston@7778 kouston@7779 kouston@7780",
               "systemctl restart kouston@7777",
               "systemctl restart kouston@7778",
+              "systemctl restart kouston@7779",
+              "systemctl restart kouston@7780",
               "echo Deployment complete"
             ]' \
             --output text \
